@@ -24,6 +24,7 @@ ATTRIBUTE_KEYS = ('source_page_idx', 'source_block_index', 'bbox_space', 'bbox_f
                   'mineru_type', 'raw_level', 'semantic_role', 'asset_id', 'asset_hash', 'asset_status',
                   'source_parent_id', 'source_start', 'source_end', 'asset_format',
                   'structure_role', 'structure_unit_role', 'structure_group_members', 'structure_unit_id',
+                  'structure_review_reason', 'structure_review_receipt',
                   'original_ocr_text', 'text_corrections', 'exercise_metadata', 'structure_question_number', 'ocr_quality_confirmed', 'ocr_quality_pending',
                   'visual_source', 'exercise_visual_inventory')
 

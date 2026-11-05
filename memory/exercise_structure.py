@@ -232,8 +232,10 @@ def _file_units(book, paths):
     for block in book.blocks:
         role = block_role(block)
         text=block.text.strip()
-        declared_start=bool(block.attributes.get('structure_unit_start'))
-        assigned=declared_start or bool(block.attributes.get('structure_unit_id'))
+        context_only=block.attributes.get('structure_unit_role')=='context'
+        declared_start=bool(block.attributes.get('structure_unit_start')) and not context_only
+        owner=block.attributes.get('structure_unit_id')
+        assigned=declared_start or bool(owner and not (context_only and owner==block.block_id))
         guide_heading=(block.block_type=='heading' or block.attributes.get('mineru_type')=='paragraph_title'
                        or re.search(r'(?:刷题|学习)计划[：:\s]*$',text) or re.match(r'^(?:今日复盘|间隔回顾)',text))
         if catalogued and not assigned and guide_heading and len(text)<120 and not re.search(r'\$|=',text) and SOURCE_GUIDE.search(text):
@@ -243,7 +245,7 @@ def _file_units(book, paths):
             continue
         if block.attributes.get('structure_unit_id') and block.attributes['structure_unit_id'] != block.block_id:
             continue
-        if scoped and role not in {'exercise', 'solution'} and not block.attributes.get('structure_unit_id'):
+        if scoped and role not in {'exercise', 'solution'} and not assigned:
             active = None
             continue
         catalog = header_metadata(block.text)
@@ -251,7 +253,7 @@ def _file_units(book, paths):
         if catalog or labelled_example or declared_start:in_guide=False
         if in_guide:continue
         is_heading = block.block_type == 'heading' and not catalog and not declared_start
-        numbered = bool(ORIGINAL.match(block.text)) and not numeric_data_row(block.text) and block.attributes.get('structure_unit_start') is not False
+        numbered = bool(ORIGINAL.match(block.text)) and not numeric_data_row(block.text) and block.attributes.get('structure_unit_start') is not False and not context_only
         catalog_active = bool(active and active['header_ids'])
         inherited_unit=block.attributes.get('learning_unit_id') or block.attributes.get('group_id')
         native_start=block.block_type=='example' and (not active or not inherited_unit or inherited_unit!=active.get('native_unit'))
@@ -263,7 +265,7 @@ def _file_units(book, paths):
         if is_heading:
             active = None
             continue
-        if block.attributes.get('structure_unit_start') or catalog or example or (numbered and not catalog_active and not re.match(r'^\s*[（(]', block.text)):
+        if declared_start or catalog or (example and not context_only) or (numbered and not catalog_active and not re.match(r'^\s*[（(]', block.text)):
             active = dict(unit_id=block.block_id, kind='example' if example else 'exercise', blocks=[],
                           section_path=paths.get(block.block_id) or [book.book_name], truncated=False,
                           header_ids=[block.block_id] if catalog else [],native_unit=inherited_unit)
@@ -287,4 +289,4 @@ def _file_units(book, paths):
     for row in rows:
         row['blocks'].sort(key=lambda b: order[b.block_id])
         row.pop('native_unit',None)
-    return [row for row in rows if row['blocks']]
+    return [row for row in rows if row['blocks'] and any(b.attributes.get('structure_unit_role')!='context' for b in row['blocks'])]

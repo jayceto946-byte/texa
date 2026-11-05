@@ -41,9 +41,31 @@ def annotate_regions(book):
 
 
 def _checked_segments(by_id, bid, decision):
-    segments = decision.get('segments') or [decision]
+    segments = deepcopy(decision.get('segments') or [decision])
     cursor = 0
     for segment in segments:
+        block = by_id[bid]
+        visual_types = {'figure', 'table', 'formula'}
+        requested_role = segment.get('role')
+        # A source type says what the block contains, not whether it belongs to
+        # the question, its solution, or ordinary context.
+        if segment.get('unit_role') in visual_types:
+            if segment['unit_role'] != block.block_type:
+                raise ValueError('图表题内角色与原始来源类型不符')
+            owner = by_id.get(segment.get('unit_id'))
+            segment['unit_role'] = {'exercise':'question', 'solution':'explanation'}.get(
+                block_role(owner) if owner else block_role(block), 'context')
+        if requested_role in visual_types:
+            if requested_role != block.block_type:
+                raise ValueError('图表类型与原始来源类型不符')
+            segment['_requested_role'] = requested_role
+            segment['role'] = {'question':'exercise', 'answer':'solution', 'explanation':'solution', 'context':'body'}.get(
+                segment.get('unit_role'), block_role(block))
+        if segment.get('unit_role') == 'context':
+            segment['unit_start'] = False
+            sibling_question = len(segments)>1 and any(s.get('unit_start') and s.get('unit_role','question')=='question' for s in segments)
+            if segment.get('unit_id') == bid and not sibling_question:
+                segment.pop('unit_id')
         role = segment.get('role', 'unknown')
         level = segment.get('heading_level')
         start, end = segment.get('start', 0), segment.get('end', len(by_id[bid].text))
@@ -70,7 +92,22 @@ def _checked_segments(by_id, bid, decision):
     return segments
 
 
-def apply_structure_review(book, decisions, *, report=None, recover=True, issues=None):
+def structure_review_receipt(block, decision, *, review_context=None):
+    """Record the applied classification without inventing a model explanation."""
+    role = decision.get('role', block_role(block))
+    reason = str(decision.get('reason') or '').strip()
+    return dict(version=1, block_id=block.block_id, page=block.page_start,
+        source_block_id=block.attributes.get('source_parent_id', block.block_id),
+        source_span=[block.attributes.get('source_start', 0), block.attributes.get('source_end', len(block.text))],
+        previous_role=block_role(block), role=role,
+        requested_role=decision.get('_requested_role', role),
+        reason=reason or f'结构审阅将来源标为{role}；未提供详细理由',
+        reason_origin='provided' if reason else 'classification',
+        decision={k:deepcopy(decision[k]) for k in ('role','unit_role','unit_start','unit_id','group_members') if k in decision},
+        review_context=deepcopy(review_context or {}))
+
+
+def apply_structure_review(book, decisions, *, report=None, recover=True, issues=None, review_context=None):
     """Validate and apply model proposals to a copy; models only select existing sources.
 
     Optional source spans split a coarse OCR paragraph. They must partition its
@@ -106,6 +143,9 @@ def apply_structure_review(book, decisions, *, report=None, recover=True, issues
                 child.block_id = f'{block.block_id}@{start}:{end}'
                 child.text = block.text[start:end]
                 child.attributes.update(source_parent_id=block.block_id, source_start=start, source_end=end)
+            if 'role' in segment:
+                receipt = structure_review_receipt(child, segment, review_context=review_context)
+                child.attributes.update(structure_review_receipt=receipt, structure_review_reason=receipt['reason'])
             child.attributes['structure_role'] = segment.get('role', child.attributes.get('structure_role', 'unknown'))
             if segment.get('reason'):child.attributes['structure_review_reason']=str(segment['reason'])
             for key in ('unit_id', 'unit_role', 'unit_start', 'group_members', 'heading_level','unit_starts_with'):
@@ -113,6 +153,8 @@ def apply_structure_review(book, decisions, *, report=None, recover=True, issues
                     child.attributes['structure_' + key] = deepcopy(segment[key])
             if len(segments)>1 and segment.get('unit_start'):
                 child.attributes.pop('structure_unit_id',None)
+            if segment.get('unit_role') == 'context' and 'unit_id' not in segment and child.attributes.get('structure_unit_id') == block.block_id:
+                child.attributes.pop('structure_unit_id')
             if child.attributes['structure_role'] == 'toc':
                 child.attributes['outline_toc'] = True
             blocks.append(child)

@@ -152,7 +152,7 @@ def _metadata(book, response, aliases, editable, pending):
     return changes
 
 
-def _structure(book, response, aliases, *, recover=True):
+def _structure(book, response, aliases, *, recover=True, review_context=None):
     decisions = {}
     split_items = {s['block_id']:s for s in response.get('splits',[])}
     by_id = {b.block_id: b for b in book.blocks}
@@ -172,7 +172,8 @@ def _structure(book, response, aliases, *, recover=True):
         if item.get('role')=='heading':item['role']=block_role(by_id[item['block_id']])
         if item.get('role') in {'answer','explanation'}:
             item.setdefault('unit_role',item['role']);item['role']='solution'
-        if item.get('role','unknown') not in ROLES:
+        source_type_role = item.get('role') == by_id[item['block_id']].block_type and item.get('role') in {'figure','table','formula'}
+        if item.get('role','unknown') not in ROLES and not source_type_role:
             pending.append(dict(block_id=item['block_id'],reason='未识别的结构角色，保持来源'));item.pop('role')
         if item.get('heading_level') is None:item.pop('heading_level',None)
         if item.get('unit_id'):
@@ -208,7 +209,7 @@ def _structure(book, response, aliases, *, recover=True):
                 **(dict(unit_id=aliases[owner]) if owner else {}),reason=segment.get('reason','来源字块分段归属')))
             if segment.get('unit_starts_with'):mapped[-1]['unit_starts_with']=segment['unit_starts_with']
         decisions[bid]=dict(block_id=bid,segments=mapped)
-    return apply_structure_review(book, list(decisions.values()), recover=recover, issues=pending)
+    return apply_structure_review(book, list(decisions.values()), recover=recover, issues=pending, review_context=review_context)
 
 
 def _prefix_position(text,prefix):
@@ -337,6 +338,7 @@ def _prepare_roles(book):
     from backend.services.exercise_file_analysis import ANSWER_HEADING
     pure_answers={bid for u in units if any(ANSWER_HEADING.match(p) for p in u['section_path']) for bid in u['source_block_ids']}
     for block in book.blocks:
+        if pending_ocr_damage(block):continue  # quarantine is not a decision to turn a question into context
         if block.block_id in pure_answers:
             decisions.append(dict(block_id=block.block_id,unit_role='answer'));continue
         parts = sorted(set((s, len(block.text) if e is None else e, r) for s,e,r in spans[block.block_id]))
@@ -501,7 +503,8 @@ def _visual(book, session, progress, *, asset_root, pdf_path,on_incomplete=None)
         figures={b.block_id for b in book.blocks if b.block_type=='figure'}
         response={**response,'blocks':[b for b in response.get('blocks',[]) if b.get('block_id') in figures]}
         response.pop('splits',None)
-        book=_structure(book,response,aliases,recover=False)
+        book=_structure(book,response,aliases,recover=False,
+            review_context=dict(kind='figure_review',request_key='figures:'+','.join(map(str,selected))))
         unresolved.extend(response.get('unresolved',[]))
     return book,unresolved
 
@@ -548,8 +551,12 @@ def _quality_review(book, session, progress, *, asset_root=None, pdf_path=None, 
             block = allowed.get(decision.get('block_id'))
             if block is None:continue
             if decision.get('role')=='annotation':
-                block.attributes.update(structure_role='annotation', ocr_quality_review=decision.get('reason','批注/噪声'))
-                excluded.append(dict(block_id=block.block_id, page=page, reason=decision.get('reason','批注/噪声')))
+                from ingestion.document_structure import structure_review_receipt
+                receipt=structure_review_receipt(block,decision,
+                    review_context=dict(kind='ocr_quality_review',request_key='ocr_quality1:'+key))
+                block.attributes.update(structure_role='annotation',ocr_quality_review=receipt['reason'],
+                    structure_review_reason=receipt['reason'],structure_review_receipt=receipt)
+                excluded.append(dict(block_id=block.block_id, page=page, reason=receipt['reason']))
             elif decision.get('role')=='unknown':
                 block.attributes['ocr_quality_pending'] = decision.get('reason') or '来源文字无法确认'
             elif decision.get('role')=='body' and pending_ocr_damage(block) and not re.fullmatch(r'\[.*\]',block.text.strip()):
@@ -636,8 +643,9 @@ def run_semantic_review(book, *, directory, resolved, purpose, asset_root=None, 
                 progress(f'正在校正文字与题目边界 · {index+1}/{len(batches)}',index*60//max(1,len(batches)))
                 content, aliases, visual_ids = _text_input(book,batch,asset_root=asset_root,pdf_path=pdf_path)
             editable = {b.block_id for b in batch}
+            request_key=('pages7:' if pages else ('answer_text:' if purpose=='answer_text' else '')+'text7:')+str(index)
             try:
-                response=session.call(('pages7:' if pages else ('answer_text:' if purpose=='answer_text' else '')+'text7:')+str(index),
+                response=session.call(request_key,
                     CLEANUP+(PAGE_PROMPT if pages else ''),content,max_tokens=9000)
             except ValueError as exc:
                 interrupted('校正文字',str(exc));break
@@ -649,7 +657,9 @@ def run_semantic_review(book, *, directory, resolved, purpose, asset_root=None, 
                 editable.update(r['block_id'] for r in inserted)
             for key in ('edits','blocks','splits'):
                 response[key] = [v for v in response.get(key,[]) if aliases.get(v.get('block_id')) in editable]
-            book=_structure(book,response,aliases,recover=False)
+            book=_structure(book,response,aliases,recover=False,
+                review_context=dict(kind='semantic_review',request_key=request_key,
+                    original_page_images=coverage['full_page_images'] if pages else []))
             corrections.extend(_edits(book,response.get('edits',[]),aliases,pending=unresolved,visual_ids=visual_ids))
             metadata_updates+=_metadata(book,response,aliases,editable,unresolved)
             unresolved.extend(response.get('unresolved',[]))
