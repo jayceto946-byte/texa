@@ -32,7 +32,7 @@ test('missing and invalid Physical Size never use the EXE size as a fallback', (
   for (const value of ['', '0', '-1', 'NaN', 'Infinity', '260072255oops', '2.6e8', '9007199254740992']) {
     assert.throws(() => verifyPayloadListing(embedded.replace('Physical Size = 260072255', `Physical Size = ${value}`), installerBytes), /Physical Size/);
   }
-  assert.throws(() => verifyPayloadListing(embedded.replace(/^Physical Size = .*\n/m, ''), installerBytes), /Physical Size/);
+  assert.throws(() => verifyPayloadListing(embedded.replace(/^Physical Size = .*\r?\n/m, ''), installerBytes), /Physical Size/);
 });
 
 test('embedded byte ranges must exactly account for the actual installer', () => {
