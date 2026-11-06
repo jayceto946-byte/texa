@@ -3,7 +3,7 @@
 .structure-review-row [role="status"]{flex:1;min-width:180px;color:var(--color-text-secondary);overflow-wrap:anywhere}
 .structure-review-hint,.structure-review-receipt{margin:6px 0 0;color:var(--color-text-secondary)}
 .structure-review-receipt p{margin:6px 0;overflow-wrap:anywhere}
-.structure-review-error{margin:6px 0;color:var(--error)}
+.structure-review-error{margin:6px 0;color:var(--danger)}
 .structure-review-control.is-compact{display:flex;align-items:center;gap:8px;position:relative;padding:0;border:0;font:inherit}
 .is-compact .structure-review-row{flex-wrap:nowrap;gap:6px}
 .is-compact .structure-review-error{max-width:190px;margin:0;line-height:1.4}
@@ -20,5 +20,12 @@
 .structure-review-confirm details>label{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-block:8px}
 .structure-review-confirm details input{width:110px;min-height:32px;padding:4px 8px}
 
-.structure-review-pdf{display:grid;gap:6px;margin-block:10px;overflow-wrap:anywhere}
+.structure-review-pdf{display:grid;gap:6px;margin-block:10px;overflow-wrap:anywhere;padding:12px;border:1px solid var(--workspace-separator);border-radius:8px;background:var(--color-bg-primary)}
 .structure-review-pdf input{max-width:100%}
+
+.structure-review-confirm [role="alert"]{overflow-wrap:anywhere}
+.structure-review-pdf-row{display:flex;align-items:center;gap:12px;min-width:0}
+.structure-review-pdf-row>div{flex:1;min-width:0}
+.structure-review-pdf-row>button{flex:none}
+.structure-review-pdf .structure-review-pdf-name{margin:4px 0 0;overflow-wrap:anywhere;color:var(--color-text-secondary)}
+.structure-review-pdf>p{margin:8px 0 0}

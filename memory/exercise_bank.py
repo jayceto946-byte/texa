@@ -497,6 +497,8 @@ class ExerciseBankStore:
         search_kw: str = "",
         status: str = "",
         practice_state: str = "",
+        exam_source: str = "",
+        authored_focus: str = "",
         limit: int = 100,
     ) -> list[ExerciseRecord]:
         sql = "SELECT data FROM exercises WHERE 1=1"
@@ -507,6 +509,10 @@ class ExerciseBankStore:
         if status:
             sql += " AND status = ?"
             params.append(status)
+        for key,value in (('exam_source',exam_source),('authored_focus',authored_focus)):
+            if value.strip():
+                sql += f" AND TRIM(COALESCE(json_extract(data, '$.source_structure.{key}'), '')) = ?"
+                params.append(value.strip())
         if practice_state == "practiced":
             sql += " AND COALESCE(json_extract(data, '$.practice_count'), 0) > 0"
         elif practice_state == "unpracticed":
@@ -532,6 +538,20 @@ class ExerciseBankStore:
                 or kw in _source_structure_text(r).lower()
             ]
         return records[:limit]
+
+    def source_facets(self, subject: Optional[str] = None, chapter: Optional[str] = None) -> dict:
+        sql = "SELECT json_extract(data, '$.subject'), json_extract(data, '$.source_structure.exam_source'), json_extract(data, '$.source_structure.authored_focus') FROM exercises"
+        params=[]
+        if chapter:
+            sql += " WHERE chapter = ?";params.append(chapter)
+        counts=dict(exam_source={},authored_focus={})
+        with self._connect() as conn:
+            for record_subject,source,focus in conn.execute(sql,params):
+                if subject and not subject_matches(record_subject or '',subject):continue
+                for key,value in (('exam_source',source),('authored_focus',focus)):
+                    if isinstance(value,str) and value.strip():
+                        value=value.strip();counts[key][value]=counts[key].get(value,0)+1
+        return counts
 
     def stats(self, subject: Optional[str] = None, chapter: Optional[str] = None) -> dict:
         records = self.list_all(subject=subject, chapter=chapter, limit=10000)
@@ -793,6 +813,8 @@ class ExerciseBank:
         tag: str = "",
         status: str = "",
         practice_state: str = "",
+        exam_source: str = "",
+        authored_focus: str = "",
         limit: int = 20,
         shuffle: bool = False,
     ) -> PracticeSession:
@@ -803,6 +825,8 @@ class ExerciseBank:
             tag=tag or None,
             status=status,
             practice_state=practice_state,
+            exam_source=exam_source,
+            authored_focus=authored_focus,
             limit=10000,
         )
         rank = {"needs_review": 0, "practicing": 1, "new": 2, "mastered": 3}
@@ -820,7 +844,8 @@ class ExerciseBank:
             self.store.save_session(previous)
         session = PracticeSession(
             exercise_ids=[record.id for record in selected],
-            filters={"search_kw": search_kw, "subject": subject, "chapter": chapter, "tag": tag, "status": status, "practice_state": practice_state},
+            filters={"search_kw": search_kw, "subject": subject, "chapter": chapter, "tag": tag, "status": status, "practice_state": practice_state,
+                     "exam_source":exam_source,"authored_focus":authored_focus},
             shuffle=shuffle,
             seed=seed,
         )
@@ -904,6 +929,9 @@ class ExerciseBank:
 
     def list_all(self, **filters) -> list[ExerciseRecord]:
         return self.store.list_all(**filters)
+
+    def source_facets(self, **scope) -> dict:
+        return self.store.source_facets(**scope)
 
     def stats(self, subject: Optional[str] = None, chapter: Optional[str] = None) -> dict:
         return self.store.stats(subject=subject, chapter=chapter)

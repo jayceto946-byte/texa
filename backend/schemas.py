@@ -245,6 +245,8 @@ class ExerciseListRequest(BaseModel):
     subject: str = ""
     chapter: str = ""
     tag: str = ""
+    exam_source: str = ""
+    authored_focus: str = ""
     search_kw: str = ""
     status: str = ""
     practice_state: Literal["", "practiced", "unpracticed"] = ""
@@ -358,6 +360,8 @@ class ExercisePracticeSessionCreateRequest(BaseModel):
     subject: str = ""
     chapter: str = ""
     tag: str = ""
+    exam_source: str = ""
+    authored_focus: str = ""
     status: str = ""
     practice_state: Literal["", "practiced", "unpracticed"] = ""
     limit: int = Field(default=20, ge=1, le=200)

@@ -261,6 +261,8 @@ def _list_exercise_records(req: ExerciseListRequest, bank) -> list[ExerciseRecor
         search_kw=req.search_kw,
         status=req.status,
         practice_state=req.practice_state,
+        exam_source=req.exam_source,
+        authored_focus=req.authored_focus,
         limit=req.limit,
     )
 
@@ -276,6 +278,12 @@ def get_exercise_overview(req: ExerciseListRequest, book_name: str = "default"):
     bank = _bank(book_name)
     records = _list_exercise_records(req, bank)
     errors = {}
+    try:
+        facets=bank.source_facets(subject=req.subject or None,chapter=req.chapter or None)
+    except Exception as exc:
+        print(f"[ExerciseOverview] source filters unavailable: {exc}",flush=True)
+        facets=dict(exam_source={},authored_focus={})
+        errors['source_facets']='来源与考点筛选项暂不可用'
     try:
         stats = bank.stats(subject=req.subject or None, chapter=req.chapter or None)
     except Exception as exc:
@@ -296,6 +304,7 @@ def get_exercise_overview(req: ExerciseListRequest, book_name: str = "default"):
             "stats": stats,
             "practice_session": practice_session,
             "errors": errors,
+            "source_facets":facets,
         },
     }
 
@@ -357,15 +366,16 @@ def upload_and_analyze_exercises(
                 ExerciseFileAnalysisStore(PROGRESS_PATH).attach_review_pdf(source_id,book_name,saved_path)
             scope = dict(chapter='', page_start=None, page_end=None, source_mode='file')
             candidates = analyze_learning_unit_candidates(structured.units, book_name=book_name,
-                subject=effective_subject, limit=limit, source_blocks=structured.source_blocks,
+                subject=effective_subject, limit=len(structured.units), source_blocks=structured.source_blocks,
                 canonical_hash=structured.canonical_hash, scope=scope, solution_markers=structured.solution_markers,
                 profile_version=structured.profile_version, source_id=source_id)
             for candidate in candidates:
                 candidate.source = effective_source
                 if chapter.strip():
                     candidate.chapter = chapter.strip()
-            if len(structured.units) > limit:
-                structured.warnings.append(f'当前范围有 {len(structured.units)} 个题目单元，本次上限 {limit} 道；请缩小范围或分批导入。')
+            # Source-backed uploads return the complete selected scope. The
+            # legacy text splitter still honors limit; old desktop clients send
+            # a fixed 500 here even when the uploaded book contains more.
         else:
             candidates = analyze_candidates(
                 split_candidate_blocks(extracted.text, limit=limit), source=effective_source,
@@ -692,6 +702,8 @@ def create_practice_session(req: ExercisePracticeSessionCreateRequest, book_name
             tag=req.tag,
             status=req.status,
             practice_state=req.practice_state,
+            exam_source=req.exam_source,
+            authored_focus=req.authored_focus,
             limit=req.limit,
             shuffle=req.shuffle,
         )

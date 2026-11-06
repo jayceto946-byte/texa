@@ -110,11 +110,11 @@ def test_textbook_snapshot_keeps_unextracted_raw_material_and_leaves_index_sourc
 
 def test_malformed_model_result_is_retryable_and_old_version_receipts_are_retained(tmp_path):
     from backend.services.import_review_session import ReviewSession
-    session=ReviewSession(model(),tmp_path,dict(version=1),complete=lambda *a,**k:response(dict(edits=[dict(block_id='x')])) )
+    session=ReviewSession(model(),tmp_path,dict(version=1),complete=lambda *a,**k:response(['invalid response root']) )
     with pytest.raises(ValueError,match='JSON'):session.call('text','system','{}')
     assert session.report()['failures'][0]['reason']=='模型未返回可用的JSON校对结果'
     failed = json.loads((tmp_path/'semantic_review.json').read_text())['calls'][0]
-    assert json.loads(failed['response_output']) == dict(edits=[dict(block_id='x')])
+    assert json.loads(failed['response_output']) == ['invalid response root']
     next_session=ReviewSession(model(),tmp_path,dict(version=2),complete=lambda *a,**k:response({}))
     next_session.call('text','system','{}')
     previous=list(tmp_path.glob('semantic_review.previous-*.json'))

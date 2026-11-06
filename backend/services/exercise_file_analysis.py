@@ -340,6 +340,9 @@ class ExerciseFileAnalysisStore:
             restored.extend(dict(block_id=block.block_id, **e) for e in removed)
         if restored:
             reviewed.source_metadata['local_reprojection_restored_content'] = restored
+        from backend.services.exercise_review_coverage import restore_question_structure
+        reviewed, integrity = restore_question_structure(original, reviewed)
+        reviewed.source_metadata['local_reprojection_integrity'] = integrity
         reviewed.source_metadata['review_origin_source_id']=origin
         reviewed.source_metadata['local_reprojection_from']=source_id
         from memory.exercise_file_importer import ExtractedExerciseText

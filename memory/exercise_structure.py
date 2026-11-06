@@ -71,11 +71,18 @@ def split_roles(block, *, first=False, learned=(), choice_prefix=''):
 
 def header_metadata(text):
     match = CATALOG.match(text)
-    if not match:
+    # MinerU can serialize a printed catalogue bar as an equation. Decode the
+    # identity for assembly only; keep its original OCR/LaTeX as source evidence.
+    equation = None if match else re.match(r'^\s*\\#\s*((?:\d\s*){1,8})(?=\\(?:quad|qquad)|$)', text)
+    if equation:
+        number = ''.join(equation[1].split())
+        tail = re.sub(r'^\\(?:qquad|quad)\s*', '', text[equation.end():]).strip()
+    elif match:
+        number, tail = match[1], text[match.end():].strip()
+    else:
         return None
-    tail = text[match.end():].strip()
     exam = EXAM.search(tail)
-    return dict(catalog_number='#' + match[1], authored_focus=tail[:exam.start()].strip() if exam else tail,
+    return dict(catalog_number='#' + number, authored_focus=tail[:exam.start()].strip() if exam else tail,
                 exam_source=exam.group().strip() if exam else '')
 
 
@@ -255,14 +262,37 @@ def exercise_units(book, *, unrestricted=False, allowed_context_ids=None):
 
 def _file_units(book, paths):
     rows, active, in_guide = [], None, False
-    catalogued=any(CATALOG.match(b.text) for b in book.blocks)
+    catalogued=any(header_metadata(b.text) for b in book.blocks)
     from ingestion.document_structure import block_role, has_exercise_scopes
     from ingestion.heading_policy import numeric_data_row
     policy=book.source_metadata.get('exercise_scope_policy')
     scoped = (policy=='regions' if policy else has_exercise_scopes(book)) and book.source_metadata.get('review_source_mode') != 'examples'
+    # Source catalogue identities survive role cleanup. Ownership changes are
+    # allowed within a question; a normal block classification cannot merge two
+    # different printed catalogue entries.
+    catalog_scope, anchor = {}, None
+    for block in book.blocks:
+        catalog = header_metadata(block.text)
+        if catalog and not block.attributes.get('structure_duplicate_of'):
+            anchor = block.block_id
+        elif (block.block_type == 'heading' or SOURCE_GUIDE.search(block.text.strip())
+              and len(block.text) < 120 and not re.search(r'\$|=', block.text)):
+            anchor = None
+        if anchor:
+            catalog_scope[block.block_id] = anchor
+    aliases = {}
     for block in book.blocks:
         role = block_role(block)
         text=block.text.strip()
+        catalog = header_metadata(block.text) if not block.attributes.get('structure_duplicate_of') else None
+        if catalog:
+            in_guide = False
+            active = dict(unit_id=block.block_id, kind='exercise', blocks=[block],
+                          section_path=paths.get(block.block_id) or [book.book_name], truncated=False,
+                          header_ids=[block.block_id], native_unit=None)
+            rows.append(active)
+            aliases[block.block_id] = active
+            continue
         context_only=block.attributes.get('structure_unit_role')=='context'
         declared_start=bool(block.attributes.get('structure_unit_start')) and not context_only
         owner=block.attributes.get('structure_unit_id')
@@ -271,6 +301,10 @@ def _file_units(book, paths):
                        or re.search(r'(?:刷题|学习)计划[：:\s]*$',text) or re.match(r'^(?:今日复盘|间隔回顾)',text))
         if catalogued and not assigned and guide_heading and len(text)<120 and not re.search(r'\$|=',text) and SOURCE_GUIDE.search(text):
             in_guide=True;active=None
+        if active and active['header_ids'] and header_continuation(active, block):
+            active['blocks'].append(block)
+            active['header_ids'].append(block.block_id)
+            continue
         # Marginal handwriting can interrupt a printed solution without ending
         # the question. A real heading/non-practice section still closes it.
         if role == 'annotation':
@@ -278,18 +312,25 @@ def _file_units(book, paths):
         if block.attributes.get('outline_toc') and not declared_start or role in {'front_matter', 'toc', 'overview', 'reference'}:
             active = None
             continue
-        if block.attributes.get('structure_unit_id') and block.attributes['structure_unit_id'] != block.block_id:
+        if (block.attributes.get('structure_unit_id') and block.attributes['structure_unit_id'] != block.block_id
+                and block.block_id not in catalog_scope):
             continue
         if scoped and role not in {'exercise', 'solution'} and not assigned:
             active = None
             continue
-        catalog = header_metadata(block.text)
         labelled_example=bool(re.match(r'^\s*(?:【?例\s*\d|例题)', block.text))
         if catalog or labelled_example or declared_start:in_guide=False
         if in_guide:continue
         is_heading = block.block_type == 'heading' and not catalog and not declared_start
         numbered = bool(ORIGINAL.match(block.text)) and not numeric_data_row(block.text) and block.attributes.get('structure_unit_start') is not False and not context_only
         catalog_active = bool(active and active['header_ids'])
+        if (declared_start and catalog_active and catalog_scope.get(block.block_id) == active['unit_id']
+                and not any(b.block_id not in active['header_ids'] and not metadata_only(b.text)
+                            for b in active['blocks'])):
+            # A reviewed stem start gives the catalogue question a body, rather
+            # than creating a second, header-only candidate.
+            declared_start = False
+            aliases[block.block_id] = active
         inherited_unit=block.attributes.get('learning_unit_id') or block.attributes.get('group_id')
         native_start=block.block_type=='example' and (not active or not inherited_unit or inherited_unit!=active.get('native_unit'))
         example=(labelled_example or native_start) and not catalog_active
@@ -305,6 +346,7 @@ def _file_units(book, paths):
                           section_path=paths.get(block.block_id) or [book.book_name], truncated=False,
                           header_ids=[block.block_id] if catalog else [],native_unit=inherited_unit)
             rows.append(active)
+            aliases[block.block_id] = active
         if active:
             if len(active['blocks']) >= 80 or (active['blocks'] and (block.page_start or 0) - (active['blocks'][0].page_start or 0) > 8):
                 active['truncated'] = True
@@ -312,9 +354,15 @@ def _file_units(book, paths):
             else:
                 active['blocks'].append(block)
     # The model's explicit ownership wins over linear OCR reading order.
-    owners = {row['unit_id']: row for row in rows}
+    owners = {**{row['unit_id']: row for row in rows}, **aliases}
     for block in book.blocks:
         target = block.attributes.get('structure_unit_id')
+        source_catalog = catalog_scope.get(block.block_id)
+        target_catalog = catalog_scope.get(target)
+        if source_catalog and target_catalog != source_catalog:
+            continue
+        if header_metadata(block.text):
+            continue  # the metadata may point at its stem without moving the boundary
         if target not in owners or block_role(block) in {'reference','annotation','front_matter','toc','overview'}:
             continue
         for row in rows:
@@ -324,4 +372,4 @@ def _file_units(book, paths):
     for row in rows:
         row['blocks'].sort(key=lambda b: order[b.block_id])
         row.pop('native_unit',None)
-    return [row for row in rows if row['blocks'] and any(b.attributes.get('structure_unit_role')!='context' for b in row['blocks'])]
+    return [row for row in rows if row['blocks'] and (row['header_ids'] or any(b.attributes.get('structure_unit_role')!='context' for b in row['blocks']))]

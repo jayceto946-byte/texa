@@ -272,3 +272,8 @@ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell[data-
 .exercise-import-extra{padding-top:20px}.exercise-answer-file>button{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.exercise-field>span{display:flex;align-items:center;gap:2px}
 
 .exercise-edit-section{padding:16px 0;border-bottom:1px solid var(--color-border)}.exercise-edit-section h2{font:500 13px/1.5 var(--font-app);margin:0 0 12px;color:var(--color-text-secondary)}.exercise-candidate-editor{gap:0;margin:0}.exercise-index-item>.control-help{margin:3px 0 0 2px}.exercise-review-actions .control-help{margin-left:0}
+
+.exercise-metadata-filters{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:16px;align-items:end;margin-top:16px}
+.exercise-metadata-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.exercise-metadata-tags span{max-width:100%;padding:3px 8px;border-radius:5px;background:var(--workspace-selected-bg);color:var(--color-text-secondary);font-size:12px;overflow-wrap:anywhere}
+@media(max-width:850px){.exercise-metadata-filters{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.exercise-metadata-filters>.app-ghost-button{grid-column:1/-1;justify-self:start}}

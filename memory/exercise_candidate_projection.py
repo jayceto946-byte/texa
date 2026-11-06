@@ -25,7 +25,7 @@ ATTRIBUTE_KEYS = ('source_page_idx', 'source_block_index', 'bbox_space', 'bbox_f
                   'source_parent_id', 'source_start', 'source_end', 'asset_format',
                   'structure_role', 'structure_unit_role', 'structure_group_members', 'structure_unit_id',
                   'structure_review_reason', 'structure_review_receipt',
-                  'source_review_warnings',
+                  'source_review_warnings', 'exercise_structure_restored',
                   'original_ocr_text', 'text_corrections', 'exercise_metadata', 'structure_question_number', 'ocr_quality_confirmed', 'ocr_quality_pending',
                   'visual_source', 'exercise_visual_inventory')
 
@@ -138,7 +138,7 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
     groups = []
     for unit in units:
         first = registry[unit['source_block_ids'][0]]
-        if (first['block_type'] == 'formula' and groups
+        if (first['block_type'] == 'formula' and not header_metadata(first['text']) and groups
                 and registry[groups[-1][-1]['source_block_ids'][-1]]['order'] + 1 == first['order']
                 and registry[groups[-1][0]['source_block_ids'][0]]['section_path'] == first['section_path']):
             groups[-1].append(unit)
@@ -199,6 +199,9 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
                 warn('boundary_uncertain', [b['block_id']])
             if b.get('review_status') and any(s in b['review_status'] for s in ('truncated', 'formula', 'fragment')):
                 warn('formula_review' if b['block_type'] == 'formula' else 'boundary_uncertain', [b['block_id']])
+        for b in blocks:
+            if b['attributes'].get('exercise_structure_restored'):
+                warn('boundary_uncertain', [b['block_id']])
         parts = {role: [] for role in ROLES}
         unresolved = any(p['code'] in ('solution_in_stem', 'boundary_uncertain') for p in problems)
         method = 'unresolved' if unresolved else ('block_boundary' if has_solution else 'whole_unit')
@@ -208,6 +211,9 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
                 metadata_quotes.setdefault(e['block_id'], []).append(e['quote'])
         role = 'question'
         for i, b in enumerate(blocks):
+            if b['block_id'] in header_ids | answer_headers:
+                parts['context'].append(dict(block_id=b['block_id'], start=0, end=None))
+                continue
             if pending_ocr_damage(b):
                 parts['context'].append(dict(block_id=b['block_id'], start=0, end=None))
                 warn('source_ocr_damage', [b['block_id']])

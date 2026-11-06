@@ -33,29 +33,29 @@ def associate_source_pdf(kind: Literal['book', 'import', 'file'] = Form(...), re
     import fitz
     from pathlib import Path
     import tempfile
-    from backend.services.structure_review_jobs import resolve_source, review_directory
+    from backend.services.structure_review_jobs import resolve_source, review_directory, review_target
     from ingestion.document_ir import canonical_book_fingerprint
     from utils.resource_limits import copy_stream_limited, MAX_BOOK_PDF_BYTES
     from utils.json_io import atomic_write_json
-    temporary = None
     try:
-        target = _target(ReviewTarget(kind=kind, reference=reference, book_name=book_name))
+        target = review_target(_target(ReviewTarget(kind=kind, reference=reference, book_name=book_name)),progress_root=PROGRESS_PATH)
         book, _, _ = resolve_source(target, progress_root=PROGRESS_PATH, books_root=BOOKS_PATH, jobs=get_job_manager())
-        directory = review_directory(PROGRESS_PATH, kind, reference); directory.mkdir(parents=True, exist_ok=True)
-        with tempfile.NamedTemporaryFile(dir=directory, suffix='.pdf', delete=False) as scratch:
-            temporary = Path(scratch.name)
-        copy_stream_limited(file.file, temporary, max_bytes=MAX_BOOK_PDF_BYTES)
-        with fitz.open(temporary) as doc:
-            if doc.page_count != book.source_page_count:
-                raise ValueError('PDF物理页数与解析来源不一致，请选择对应原始PDF')
-        temporary.replace(directory / 'source.pdf'); temporary = None
-        atomic_write_json(directory / 'source_pdf.json', dict(source_version=canonical_book_fingerprint(book)))
-        return dict(success=True, message='已关联原始PDF，原文件保持不变')
-    except (ValueError, OSError) as exc:
+        directory = review_directory(PROGRESS_PATH, target['kind'], target['reference']); directory.mkdir(parents=True, exist_ok=True)
+        # The bounded upload writer uses exclusive creation. Give it a new
+        # path inside a private scratch directory, not an already-created file.
+        with tempfile.TemporaryDirectory(dir=directory,prefix='pdf-upload-') as scratch:
+            temporary=Path(scratch)/'source.pdf'
+            copy_stream_limited(file.file, temporary, max_bytes=MAX_BOOK_PDF_BYTES)
+            with fitz.open(temporary) as doc:
+                pages=doc.page_count
+                if doc.page_count != book.source_page_count:
+                    raise ValueError(f'所选PDF共{pages}页，解析来源共{book.source_page_count or "未知"}页。请选择与解析包同版本、同页序的PDF；原书与重新编排的章节版不能直接对应')
+            temporary.replace(directory / 'source.pdf')
+        filename=Path((file.filename or 'source.pdf').replace('\\','/')).name
+        atomic_write_json(directory / 'source_pdf.json', dict(source_version=canonical_book_fingerprint(book),filename=filename,pages=pages))
+        return dict(success=True, message='已关联原始PDF，原文件保持不变',data=dict(filename=filename,pages=pages,reference=target['reference']))
+    except (ValueError, OSError, RuntimeError) as exc:
         raise HTTPException(422, '无法关联原页：' + str(exc)) from None
-    finally:
-        if temporary:
-            temporary.unlink(missing_ok=True)
 
 
 class ReviewTarget(BaseModel):
@@ -77,27 +77,35 @@ def _target(request):
 
 @router.post('/plan')
 def plan_review(request: ReviewTarget):
-    from backend.services.structure_review_jobs import resolve_source
+    from backend.services.structure_review_jobs import resolve_source, review_target, review_directory
     from backend.services.import_semantic_review import semantic_review_estimate
     from config import get_model_role_config
     from llm.factory import ensure_runtime_support
     from llm.types import Capability
     try:
-        book, _, pdf = resolve_source(_target(request), progress_root=PROGRESS_PATH, books_root=BOOKS_PATH, jobs=get_job_manager())
+        target=review_target(_target(request),progress_root=PROGRESS_PATH)
+        book, _, pdf = resolve_source(target, progress_root=PROGRESS_PATH, books_root=BOOKS_PATH, jobs=get_job_manager())
         resolved = get_model_role_config('vision')
         ensure_runtime_support(resolved, Capability.VISION)
         answer_book = None
         if request.kind == 'file':
             from backend.services.exercise_file_analysis import ExerciseFileAnalysisStore, file_book
-            answer = ExerciseFileAnalysisStore(PROGRESS_PATH).answer_source(request.reference, request.book_name)
+            answer = ExerciseFileAnalysisStore(PROGRESS_PATH).answer_source(target['reference'], request.book_name)
             if answer:
                 answer_book = answer.canonical_book or file_book(answer, name=request.book_name, prefix='answer')
         plan = semantic_review_estimate(book, resolved, request.purpose or ('exercises' if request.kind=='file' else 'textbook'), answer_book=answer_book, has_original_pages=bool(pdf))
         from llm.registry import get_model
         model_spec = get_model(resolved.provider.provider_id, resolved.model)
+        pdf_info=None
+        if pdf:
+            import json
+            metadata=review_directory(PROGRESS_PATH,target['kind'],target['reference'])/'source_pdf.json'
+            saved=json.loads(metadata.read_text(encoding='utf-8')) if metadata.is_file() and pdf.resolve()==(metadata.parent/'source.pdf').resolve() else {}
+            pdf_info=dict(filename=saved.get('filename') or pdf.name,pages=saved.get('pages') or book.source_page_count)
         return dict(success=True, data={**plan, 'model': resolved.model, 'model_label': model_spec.label.split('（')[0] if model_spec else resolved.model, 'ready': resolved.credential_configured,
+                    'source_pdf':pdf_info,
                     'provider': resolved.provider.label, 'max_cost_cny': request.max_cost_cny,
-                    'has_original_pages': bool(pdf), 'image_scope': '原始PDF页面与区域裁片' if pdf else 'OCR坐标与已有裁片；无完整原页',
+                    'has_original_pages': bool(pdf), 'total_pages': book.source_page_count, 'image_scope': '原始PDF页面与区域裁片' if pdf else 'OCR坐标与已有裁片；无完整原页',
                     'notice': '使用已配置的识图服务，所选页和必要邻页会发送给该服务并按用量计费；未审阅页面不视为已核实。'})
     except (ValueError, OSError) as exc:
         raise HTTPException(422, str(exc)) from None

@@ -72,6 +72,9 @@ def _toc_line(line):
     if not match or len(match[1].strip()) < 2:
         return None
     title = re.sub(r'[.·…．\s]+$', '', match[1]).strip()
+    # A choice such as 'A. 0' has no title after stripping its punctuation.
+    if len(title) < 2:
+        return None
     return dict(title=title, printed_page=int(match[2]) if match[2].isdigit() else None)
 
 

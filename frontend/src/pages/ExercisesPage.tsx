@@ -75,6 +75,9 @@ const ExercisesPage: React.FC = () => {
   const [searchKw, setSearchKw] = useState('');
   const statusFilter = '';
   const [filterChapter, setFilterChapter] = useState('');
+  const [filterExamSource, setFilterExamSource] = useState('');
+  const [filterAuthoredFocus, setFilterAuthoredFocus] = useState('');
+  const [sourceFacets, setSourceFacets] = useState<{ exam_source: Record<string,number>; authored_focus: Record<string,number> }>({ exam_source: {}, authored_focus: {} });
   const [practiceState, setPracticeState] = useState('');
   const [fileSourceCategory, setFileSourceCategory] = useState('exercise');
   const [candidateSourceCategory, setCandidateSourceCategory] = useState('');
@@ -133,7 +136,7 @@ const ExercisesPage: React.FC = () => {
   }, [searchKw]);
 
 
-  const recordList = useVisibleList(records, 30, `${activeName}|${targetSubject}|${filterChapter}|${practiceState}|${searchKw}`);
+  const recordList = useVisibleList(records, 30, `${activeName}|${targetSubject}|${filterChapter}|${filterExamSource}|${filterAuthoredFocus}|${practiceState}|${searchKw}`);
   const scopeChapters = Array.from(new Set([...textbookOutline.chapters.map(chapter => chapter.title), ...records.map(record => record.chapter || ''), filterChapter].filter(Boolean)));
   useEffect(() => {
     setTextbookChapter('');
@@ -141,6 +144,7 @@ const ExercisesPage: React.FC = () => {
     setTextbookPageEnd('');
     setPdfOpen(false);
   }, [activeName]);
+  useEffect(() => { setFilterExamSource(''); setFilterAuthoredFocus(''); }, [activeName, targetSubject, filterChapter]);
 
 
 
@@ -163,12 +167,15 @@ const ExercisesPage: React.FC = () => {
         subject: targetSubject,
         status: statusFilter,
         chapter: filterChapter,
+        exam_source: filterExamSource,
+        authored_focus: filterAuthoredFocus,
         practice_state: practiceState,
         limit: 100,
       });
       if (revision !== loadRevision.current) return;
       if (overview?.success) {
         setRecords(overview.data?.records || []);
+        setSourceFacets(overview.data?.source_facets || { exam_source: {}, authored_focus: {} });
         setStats(overview.data?.stats || null);
         setPracticeSession(overview.data?.practice_session || null);
       } else setLoadError(overview?.message || '暂时无法读取题库');
@@ -177,7 +184,7 @@ const ExercisesPage: React.FC = () => {
     } finally {
       if (revision === loadRevision.current) setLoading(false);
     }
-  }, [bookQuery, statusFilter, targetSubject, filterChapter, practiceState]);
+  }, [bookQuery, statusFilter, targetSubject, filterChapter, filterExamSource, filterAuthoredFocus, practiceState]);
 
   const {
     practicePool,
@@ -210,6 +217,8 @@ const ExercisesPage: React.FC = () => {
     statusFilter,
     searchKw,
     chapter: filterChapter,
+    examSource: filterExamSource,
+    authoredFocus: filterAuthoredFocus,
     practiceState,
     singlePracticeActive,
     refreshOverview: load,
@@ -611,11 +620,11 @@ const ExercisesPage: React.FC = () => {
         </>} onSaved={handleAnswerSaved} onMessage={setMessage} onStatus={status => void updateStatus(expandedId, status)} onDelete={() => void deleteExercise(expandedId)} />}</div>
         <main hidden={workspaceMode === 'import' || (workspaceMode === 'bank' && Boolean(expandedId))} className="exercise-main">
           <div className="exercise-main-inner">
-            {(workspaceMode === 'bank' || (!singlePracticeActive && !['active', 'paused'].includes(practiceSession?.status || ''))) && <ExerciseScopeFilters subject={targetSubject} bookName={activeName} books={books} chapter={filterChapter} chapters={scopeChapters} practiceState={practiceState} onSubject={updateTargetSubject} onBook={value => void updateTargetName(value)} onChapter={setFilterChapter} onPracticeState={setPracticeState} />}
+            {(workspaceMode === 'bank' || (!singlePracticeActive && !['active', 'paused'].includes(practiceSession?.status || ''))) && <ExerciseScopeFilters subject={targetSubject} bookName={activeName} books={books} chapter={filterChapter} chapters={scopeChapters} examSource={filterExamSource} authoredFocus={filterAuthoredFocus} sourceFacets={sourceFacets} onExamSource={setFilterExamSource} onAuthoredFocus={setFilterAuthoredFocus} practiceState={practiceState} onSubject={updateTargetSubject} onBook={value => void updateTargetName(value)} onChapter={setFilterChapter} onPracticeState={setPracticeState} />}
             <section className={`exercise-practice-panel ${workspaceMode !== 'practice' ? 'is-hidden' : ''} ${singlePracticeActive || ['active', 'paused'].includes(practiceSession?.status || '') ? 'is-reading' : ''}`}>
               {!singlePracticeActive && !['active', 'paused'].includes(practiceSession?.status || '') && <div className="exercise-preparation">
                 <p className="exercise-eyebrow">{targetSubject} / {activeName === 'default' ? '独立题库' : textbookBook?.displayName || activeName}</p>
-                <h1>{loadError ? '题库暂时无法读取' : loading && !records.length ? '正在读取题库…' : practicePool.length ? '开始一轮练习' : (searchKw || filterChapter || practiceState) ? '当前范围暂无符合条件的题目' : '当前范围暂无题目'}</h1>{loadError ? <div role="alert">
+                <h1>{loadError ? '题库暂时无法读取' : loading && !records.length ? '正在读取题库…' : practicePool.length ? '开始一轮练习' : (searchKw || filterChapter || filterExamSource || filterAuthoredFocus || practiceState) ? '当前范围暂无符合条件的题目' : '当前范围暂无题目'}</h1>{loadError ? <div role="alert">
                   <p>{loadError}</p>
                   <button className="app-secondary-button" onClick={load}>重试读取</button>
                 </div> : <div className="exercise-prep-columns">
@@ -675,7 +684,7 @@ const ExercisesPage: React.FC = () => {
               {loadError && <p role="alert" className="exercise-warning">{loadError}</p>}
               {message && <p role="status">{message}</p>}
               <div className="exercise-bank-search">
-                <input value={searchKw} onChange={(e) => setSearchKw(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') load(); }} aria-label="搜索题目" placeholder="搜索题干、答案或解析" className="min-w-[260px] flex-1 app-field" />
+                <input value={searchKw} onChange={(e) => setSearchKw(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') load(); }} aria-label="搜索题目" placeholder="搜索题目、出处或考点" className="min-w-[260px] flex-1 app-field" />
                 <button onClick={load} className="app-secondary-button">搜索</button>
               </div>
 
@@ -693,6 +702,10 @@ const ExercisesPage: React.FC = () => {
                             <strong>{exerciseSourceCategory(record, textbookSourceName) === 'textbook_example' ? textbookBook?.displayName || textbookSourceName : record.source || exerciseSourceLabels[exerciseSourceCategory(record, textbookSourceName)]}</strong>
                             {record.chapter && <span>{record.chapter}</span>}
                           </div>
+                          {(record.source_structure?.exam_source || record.source_structure?.authored_focus) && <div className="exercise-metadata-tags">
+                            {record.source_structure?.exam_source && <span title={record.source_structure.exam_source}>来源 · {record.source_structure.exam_source}</span>}
+                            {record.source_structure?.authored_focus && <span title={record.source_structure.authored_focus}>考点 · {record.source_structure.authored_focus}</span>}
+                          </div>}
                           <div className="exercise-bank-facts">
                             <span className="exercise-source-kind">{exerciseSourceLabels[exerciseSourceCategory(record, textbookSourceName)] || '习题'}</span>
                             {record.question_type && record.question_type !== '未确定' && <span>{record.question_type}</span>}

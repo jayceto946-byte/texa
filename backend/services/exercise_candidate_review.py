@@ -227,8 +227,8 @@ class ExerciseCandidateReviewService:
         return extracted, proposals
 
     def prepare(self, book_name, items):
-        if not items or len(items) > 500:
-            raise CandidateAdmissionError('', '请选择1至500道候选')
+        if not items:
+            raise CandidateAdmissionError('', '请选择需要入库的候选')
         cache, receipts, origins, ownership, split_plans = {}, [], set(), {}, {}
         if len({canonical_json(item.get('candidate_context', {}).get('projection', {}).get('scope')) for item in items if item.get('candidate_context')}) > 1:
             raise CandidateAdmissionError('', '一次提交必须保持同一教材分析范围')

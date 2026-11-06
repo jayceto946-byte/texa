@@ -8,7 +8,7 @@ from ingestion.document_ir import canonical_book_fingerprint
 from ingestion.document_structure import apply_structure_review, block_role, NON_PRACTICE, ROLES
 from ingestion.document_workflows import canonical_outline
 from ingestion.heading_policy import exercise_heading,PROBLEM_START,numeric_data_row
-from backend.services.import_review_session import ReviewSession
+from backend.services.import_review_session import ReviewSession, ReviewOutputError
 from ingestion.source_text_quality import pending_ocr_damage
 
 VERSION = 8
@@ -185,6 +185,12 @@ def _structure(book, response, aliases, *, recover=True, review_context=None):
         if item.get('role')=='heading':item['role']=block_role(by_id[item['block_id']])
         if item.get('role') in {'answer','explanation'}:
             item.setdefault('unit_role',item['role']);item['role']='solution'
+        from memory.exercise_structure import header_metadata
+        if (header_metadata(by_id[item['block_id']].text)
+                and item.get('role') in NON_PRACTICE
+                and not by_id[item['block_id']].attributes.get('structure_duplicate_of')):
+            item.update(role='body', unit_role='context', unit_start=False,
+                        reason='印刷题号栏保留为题头资料；原分类为'+item['role'])
         source_type_role = item.get('role') == by_id[item['block_id']].block_type and item.get('role') in {'figure','table','formula'}
         if item.get('role','unknown') not in ROLES and not source_type_role:
             pending.append(dict(block_id=item['block_id'],reason='未识别的结构角色，保持来源'));item.pop('role')
@@ -596,7 +602,7 @@ def create_review_session(book, *, directory, resolved, purpose, pdf_path=None, 
 def run_semantic_review(book, *, directory, resolved, purpose, asset_root=None, pdf_path=None,
                         on_progress=None, check_cancelled=lambda: None, complete=None, max_cost_cny=3, session=None):
     progress = on_progress or (lambda *args: None)
-    original = book; book = deepcopy(book)
+    original = book; original_book = book; book = deepcopy(book)
     if purpose == 'exercises':
         from ingestion.document_structure import has_exercise_scopes
         book.source_metadata.setdefault('exercise_scope_policy','regions' if has_exercise_scopes(book) else 'all')
@@ -609,6 +615,7 @@ def run_semantic_review(book, *, directory, resolved, purpose, asset_root=None, 
     page_rows, additions = [], []
     boundary_proposals = []
     batches=[]; completed_batches=0; processed_blocks=0; metadata_updates=0
+    failed_batches=[]
     incomplete=False
     def interrupted(stage,reason):
         nonlocal incomplete
@@ -666,6 +673,11 @@ def run_semantic_review(book, *, directory, resolved, purpose, asset_root=None, 
             try:
                 response=session.call(request_key,
                     CLEANUP+(PAGE_PROMPT if pages else ''),content,max_tokens=9000)
+            except ReviewOutputError as exc:
+                failure=dict(request_key=request_key, pages=pages or sorted({b.page_start for b in batch if b.page_start}),
+                             reason=str(exc)+'；本批保留原来源，继续其他批次')
+                failed_batches.append(failure);unresolved.append(failure)
+                continue
             except ValueError as exc:
                 interrupted('校正文字',str(exc));break
             # Neighbours are evidence, not a second edit pass over completed text.
@@ -720,7 +732,16 @@ def run_semantic_review(book, *, directory, resolved, purpose, asset_root=None, 
         summary['text_coverage']=dict(total_batches=len(batches) if batches else len(list(_batches(book.blocks))),
             completed_batches=completed_batches,processed_blocks=processed_blocks,total_blocks=sum(len(b) for b in batches) if batches else len(book.blocks),
             original_pages=bool(pdf_path))
-    report={**session.report(),**summary,'purpose':purpose,'status':'partial' if unresolved or incomplete else 'reviewed','version':VERSION,'needs_retry':incomplete}
+    report={**session.report(),**summary,'purpose':purpose,'status':'partial' if unresolved or incomplete else 'reviewed','version':VERSION,'needs_retry':incomplete or bool(failed_batches),'failed_batches':failed_batches}
     book.source_metadata['structure_review']=report
     book.source_metadata['semantic_text_corrections']=corrections
+    if purpose == 'exercises':
+        from backend.services.exercise_review_coverage import restore_question_structure
+        book,integrity=restore_question_structure(original_book,book)
+        report['question_integrity']=integrity
+        if integrity['restored_questions']:
+            report['status']='partial'
+            report['unresolved'].append(dict(reason='部分题目来源遗漏或错误合并，已局部恢复原结构，保留文字修订',
+                                             unit_ids=integrity['restored_questions']))
+        book.source_metadata['structure_review']=report
     return book,report

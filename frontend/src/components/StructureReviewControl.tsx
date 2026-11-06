@@ -6,7 +6,8 @@ import './structureReview.css';
 type Target = { kind: 'book' | 'import' | 'file'; reference: string; book_name: string };
 type Report = { source_additions?: number; page_content_coverage?: { selected_pages: number[]; reviewed_pages: number[]; completeness_verified: boolean }; status?: string; calls?: number; new_calls?: number; reused_calls?: number; text_coverage?: { total_batches: number; completed_batches: number; processed_blocks: number; total_blocks: number; original_pages: boolean }; candidate_coverage?: { before: number; after: number; removed: number; unaccounted: number; changes?: Array<{ reason: string; count: number }> }; model?: string; metadata_updates?: number; text_corrections?: number; merged_questions?: number; retained_answer_blocks?: number; changed_headings?: number; outline_changed?: boolean; estimated_cost_cny?: number | null; unresolved?: Array<string | { reason?: string; stage?: string; block_id?: string; page?: number }>; usage_unknown?: boolean; needs_retry?: boolean; failure?: { reason: string }; failures?: Array<{ key: string; reason: string }> };
 type Job = { id: string; status: string; message: string; progress: number; result?: { source_id?: string; adoption_required?: boolean; adoption_blocked?: boolean; report?: Report } };
-type Plan = { model: string; model_label?: string; provider: string; ready: boolean; pages: number[]; source_characters: number; includes_answer_file: boolean; estimated_cost: { low: number; high: number } | null; max_cost_cny: number; image_scope: string; has_original_pages: boolean };
+type PdfInfo = { filename: string; pages: number | null };
+type Plan = { source_pdf?: PdfInfo | null; total_pages: number; model: string; model_label?: string; provider: string; ready: boolean; pages: number[]; source_characters: number; includes_answer_file: boolean; estimated_cost: { low: number; high: number } | null; max_cost_cny: number; image_scope: string; has_original_pages: boolean };
 
 export function StructureReviewControl({ target, disabled, compact = false, candidateCount, onDispatch, onComplete, onBusyChange }: { target: Target; disabled?: boolean; compact?: boolean; candidateCount?: number; onDispatch?: () => void; onComplete: (result: Job['result']) => void | Promise<void>; onBusyChange?: (busy: boolean) => void }) {
   const key = `texa:structure-review:${target.kind}:${target.reference}`;
@@ -18,6 +19,11 @@ export function StructureReviewControl({ target, disabled, compact = false, cand
   const [planning, setPlanning] = useState(false);
   const [plan, setPlan] = useState<Plan | null>(null);
   const [budget, setBudget] = useState(3);
+  const [pdfUploading, setPdfUploading] = useState(false);
+  const [pdfError, setPdfError] = useState('');
+  const [pdfInfo, setPdfInfo] = useState<PdfInfo | null>(null);
+  const [uploadName, setUploadName] = useState('');
+  const pdfInput = useRef<HTMLInputElement>(null);
   const [stopping, setStopping] = useState(false);
   const dispatchLock = useRef(false);
   const [retrying, setRetrying] = useState(() => localStorage.getItem(key + ':failed') === '1');
@@ -55,26 +61,27 @@ export function StructureReviewControl({ target, disabled, compact = false, cand
     return () => { active = false; clearTimeout(timer); };
   }, [jobId, key]);
   const purpose = target.kind === 'file' ? 'exercises' : 'textbook';
-  const prepare = async () => {
-    setConfirmOpen(true); setPlanning(true); setError(''); setPlan(null);
+  const prepare = async (open = true) => {
+    if (open) setConfirmOpen(true); setPlanning(true); setError('');
     try {
       const response = await post('/structure-reviews/plan', { ...target, purpose });
       if (!response.success) throw new Error(response.message || '无法读取校对范围与模型');
-      setPlan(response.data as Plan);
+      setPlan(response.data as Plan); setPdfInfo(current => response.data.source_pdf || current);
     } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
     finally { setPlanning(false); }
   };
   const associatePdf = async (file: File) => {
-    setPlanning(true); setError('');
+    setPdfUploading(true); setPdfError(''); setUploadName(file.name);
     const form = new FormData();
     form.append('kind', target.kind); form.append('reference', target.reference); form.append('book_name', target.book_name); form.append('file', file);
     try {
-      const response = await apiFetch('/structure-reviews/source-pdf', { method: 'POST', body: form });
+      const response = await apiFetch('/structure-reviews/source-pdf', { method: 'POST', body: form }, 5 * 60 * 1000);
       const result = await response.json();
-      if (!response.ok || !result.success) throw new Error(result.detail || '关联PDF失败');
-      await prepare();
-    } catch (cause) { setError(cause instanceof Error ? cause.message : String(cause)); }
-    finally { setPlanning(false); }
+      if (!response.ok || !result.success) throw new Error(typeof result.detail === 'string' ? result.detail : result.message || '无法关联PDF，请重试');
+      setPdfInfo(result.data || { filename: file.name, pages: plan?.total_pages || null });
+      await prepare(false);
+    } catch (cause) { setPdfError(`${file.name} 未关联：${cause instanceof Error ? cause.message : String(cause)}`); }
+    finally { setPdfUploading(false); }
   };
   const start = async (purpose: 'outline' | 'exercises' | 'textbook') => {
     if (dispatchLock.current) return;
@@ -109,18 +116,26 @@ export function StructureReviewControl({ target, disabled, compact = false, cand
     <Dialog open={confirmOpen} title="AI校对" onClose={() => setConfirmOpen(false)} dismissOnBackdrop className="structure-review-confirm">
       <h2>AI校对</h2>
       <p>{target.kind === 'file' ? '对照原始来源校正题干、公式、选项与子问，分离原书答案，检查跨页边界，并提取考试年份、出处和题型。AI 修正后仍可人工编辑和核对。' : '帮助修正OCR中的错字和公式，清理无关内容，并校正目录层级和章节页码。'}</p>
-      {planning ? <p role="status">正在读取校对范围与模型…</p> : plan && <>
+      {target.kind === 'file' && <section className="structure-review-pdf" aria-label="原始PDF">
+        <div className="structure-review-pdf-row"><div><strong>原始 PDF</strong><p className="structure-review-pdf-name">{pdfUploading ? uploadName : pdfInfo?.filename || '尚未关联文件'}</p></div>
+          <button type="button" className="app-secondary-button" disabled={pdfUploading || busy} onClick={() => pdfInput.current?.click()}>{pdfUploading ? '正在关联…' : pdfInfo || plan?.has_original_pages ? '更换PDF' : '选择PDF'}</button>
+          <input ref={pdfInput} type="file" accept="application/pdf,.pdf" aria-label="关联原始PDF" hidden disabled={pdfUploading || busy} onChange={e => { const file=e.target.files?.[0]; e.target.value=''; if(file)void associatePdf(file); }} />
+        </div>
+        {pdfUploading ? <p role="status">正在上传并核对页数，请稍候…</p> : pdfInfo ? <p role="status">已关联{pdfInfo.pages ? ` · ${pdfInfo.pages}页` : ''}</p> : plan?.has_original_pages ? <p role="status">已有关联原页</p> : <p className="structure-review-hint">选择与解析包同版本、同页序的PDF{plan?.total_pages ? `（解析来源共${plan.total_pages}页）` : ''}。{purpose === 'exercises' ? '未关联时仍可依据OCR文字及可用裁片校对。' : ''}</p>}
+        {pdfError && <p role="alert" className="structure-review-error">{pdfError}</p>}
+      </section>}
+      {planning && <p role="status">正在读取校对范围与模型…</p>}
+      {plan && <>
         <dl><div><dt>处理范围</dt><dd>{target.kind === 'file' ? `所选来源的完整页面、OCR 文字与邻页上下文${candidateCount != null ? `（现有 ${candidateCount} 道候选）` : ''}` : '本次导入的教材'}，{plan.pages.length} 页{plan.includes_answer_file ? '，含独立答案文件' : ''}</dd></div>
         <div><dt>图像依据</dt><dd>{plan.image_scope}</dd></div>
         <div><dt>使用模型</dt><dd>{plan.model_label || plan.model}</dd></div></dl>
-        {target.kind === 'file' && !plan.has_original_pages && <label className="structure-review-pdf">关联原始PDF<input type="file" accept="application/pdf,.pdf" onChange={e => { const file = e.target.files?.[0]; if (file) void associatePdf(file); }} /></label>}
         <details><summary>调整费用上限</summary><label>估算累计费用上限（元）<input className="app-field" aria-label="累计费用上限（元）" type="number" min="0.01" max="1000" step="0.5" value={budget} onChange={e => setBudget(Number(e.target.value))} /></label>{!plan.estimated_cost && <p>暂无该模型单价，金额上限无法用于本地预算控制，费用以服务商账单为准。</p>}</details>
         <p>确认后将上述范围的文字和相关图片发送给该模型。按实际用量计费，费用以模型服务商账单为准。</p>
         <p>校对期间可继续编辑，也可随时停止；已发送的请求可能仍会计费。</p>
         {!plan.ready && <p role="alert">请先到设置中配置识图模型。</p>}
       </>}
       {error && <p role="alert">{error}</p>}
-      <footer><button className="app-secondary-button" onClick={() => setConfirmOpen(false)}>取消</button><button className="app-primary-button" disabled={!plan?.ready || planning || starting || !Number.isFinite(budget) || budget <= 0 || budget > 1000} onClick={() => void start(purpose)}>开始校对</button></footer>
+      <footer><button className="app-secondary-button" onClick={() => setConfirmOpen(false)}>取消</button><button className="app-primary-button" disabled={!plan?.ready || planning || pdfUploading || starting || !Number.isFinite(budget) || budget <= 0 || budget > 1000} onClick={() => void start(purpose)}>开始校对</button></footer>
     </Dialog>
   </section>;
 }

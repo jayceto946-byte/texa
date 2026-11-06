@@ -15,6 +15,15 @@ def review_directory(progress_root, kind, reference):
     return safe_child_path(Path(progress_root) / '_structure_reviews' / kind, reference)
 
 
+def review_target(target, *, progress_root):
+    """Planning, PDF association and execution use the same original source."""
+    if target['kind']=='file':
+        from backend.services.exercise_file_analysis import ExerciseFileAnalysisStore
+        return {**target,'reference':ExerciseFileAnalysisStore(progress_root).review_reference(target['reference'],target['book_name'])}
+    return target
+
+
+
 def load_reviewed_candidate(book, directory):
     meta = Path(directory) / 'candidate.json'
     if not meta.exists():
@@ -60,7 +69,13 @@ def resolve_source(target, *, progress_root, books_root, jobs):
         if book.source_metadata.get('review_book_name') == name:
             candidate = safe_child_path(Path(books_root), name + '.pdf')
             if candidate.is_file(): pdf = candidate
-        return _source_with_pdf(book, store.root / 'assets', pdf, target, root)
+        result=_source_with_pdf(book, store.root / 'assets', pdf, target, root)
+        origin=store.review_reference(reference,name)
+        if result[2] is None and origin!=reference:
+            original,_,original_pdf=resolve_source({**target,'reference':origin},progress_root=root,books_root=books_root,jobs=jobs)
+            if original.source_page_count==book.source_page_count:
+                result=(book,result[1],original_pdf)
+        return result
     if kind == 'import':
         job = jobs.get_job(reference)
         if (not job or job.get('book_name') != name or job['status'] != 'waiting_for_review'
@@ -82,9 +97,7 @@ def start_review(target, *, mode, max_pages, progress_root, books_root, jobs, bu
     from config import get_model_role_config
     from llm.factory import ensure_runtime_support
     from llm.types import Capability
-    if target['kind']=='file':
-        from backend.services.exercise_file_analysis import ExerciseFileAnalysisStore
-        target={**target,'reference':ExerciseFileAnalysisStore(progress_root).review_reference(target['reference'],target['book_name'])}
+    target=review_target(target,progress_root=progress_root)
     book, assets, pdf = resolve_source(target, progress_root=progress_root, books_root=books_root, jobs=jobs)
     resolved = get_model_role_config('vision')
     ensure_runtime_support(resolved, Capability.VISION)
