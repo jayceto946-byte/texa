@@ -24,7 +24,7 @@ def test_existing_metadata_filters_apply_before_limit_and_practice_uses_same_sco
     monkeypatch.setattr(exercises,'_bank',lambda _:bank)
     result=exercises.get_exercise_overview(ExerciseListRequest(subject='数学',exam_source='2024数二',authored_focus='导数定义',limit=1))
     assert [r.question_text for r in result['data']['records']]==['old']
-    assert result['data']['source_facets']==dict(exam_source={'2024数二':2,'2023数一':1},authored_focus={'导数定义':2,'函数极限':1})
+    assert result['data']['source_facets']==dict(exam_source={'2024数二':2,'2023数一':1},authored_focus={'导数定义':2,'函数极限':1},chapters={'第一章':4})
     started=exercises.create_practice_session(ExercisePracticeSessionCreateRequest(subject='数学',exam_source='2024数二',authored_focus='导数定义'))
     assert started['success']
     session=bank.get_active_practice_session()

@@ -76,7 +76,7 @@ const ExercisesPage: React.FC = () => {
   const [filterChapter, setFilterChapter] = useState('');
   const [filterExamSource, setFilterExamSource] = useState('');
   const [filterAuthoredFocus, setFilterAuthoredFocus] = useState('');
-  const [sourceFacets, setSourceFacets] = useState<{ exam_source: Record<string,number>; authored_focus: Record<string,number> }>({ exam_source: {}, authored_focus: {} });
+  const [sourceFacets, setSourceFacets] = useState<{ exam_source: Record<string,number>; authored_focus: Record<string,number>; chapters?: Record<string,number> }>({ exam_source: {}, authored_focus: {} });
   const [practiceState, setPracticeState] = useState('');
   const [fileSourceCategory, setFileSourceCategory] = useState('exercise');
   const [candidateSourceCategory, setCandidateSourceCategory] = useState('');
@@ -120,13 +120,15 @@ const ExercisesPage: React.FC = () => {
   const scopeRevision = useRef(0);
   const [inspectedBatches, setInspectedBatches] = useState<ExerciseImportBatch[]>([]);
   const [lastImportBatch, setLastImportBatch] = useState<ExerciseImportBatch | null>(null);
+  const [lastImportedCandidateIds, setLastImportedCandidateIds] = useState<Set<string>>(new Set());
   const searchKwRef = useRef(searchKw);
   const candidateState = useExerciseImportCandidates({ onMessage: setCandidateError });
   const {
     candidates,
     resetImportCandidates,
     replaceCandidates,
-    removeCommittedCandidates,
+    markImportedCandidates,
+    restoreImportedCandidates,
     submittableCandidates,
   } = candidateState;
 
@@ -136,7 +138,7 @@ const ExercisesPage: React.FC = () => {
 
 
   const recordList = useVisibleList(records, 30, `${activeName}|${targetSubject}|${filterChapter}|${filterExamSource}|${filterAuthoredFocus}|${practiceState}|${searchKw}`);
-  const scopeChapters = Array.from(new Set([...textbookOutline.chapters.map(chapter => chapter.title), ...records.map(record => record.chapter || ''), filterChapter].filter(Boolean)));
+  const scopeChapters = Array.from(new Set([...textbookOutline.chapters.map(chapter => chapter.title), ...Object.keys(sourceFacets.chapters || {}), ...records.map(record => record.chapter || ''), filterChapter].filter(Boolean)));
   useEffect(() => {
     setTextbookChapter('');
     setTextbookPageStart('');
@@ -434,7 +436,7 @@ const ExercisesPage: React.FC = () => {
     try {
       const v1 = Boolean(candidateState.sourceRegistry);
       const submittedIds = new Set(selected.map(c => c.id));
-      const res = await post(`/exercises/${v1 ? 'candidates/batch-add' : 'batch-add'}${bookQuery}`, { ...(v1 ? { candidate_contract_version: 1 } : {}), exercises: selected.map(candidate => candidateToExercise(candidate, candidateSourceCategory, true)), source_label: candidateSourceLabel || `${activeName} 教材抽题`, allow_duplicates: false });
+      const res = await post(`/exercises/${v1 ? 'candidates/batch-add' : 'batch-add'}${bookQuery}`, { ...(v1 ? { candidate_contract_version: 1 } : {}), exercises: selected.map(candidate => candidateToExercise(candidate, candidateSourceCategory, true)), source_label: candidateSourceLabel || `${activeName} 教材抽题`, allow_duplicates: true });
       if (!res?.success) { fail(res?.message || '入库被拒绝，候选仍保留'); return; }
       const acknowledged = [...(res.data || []).map((r: ExerciseRecord) => r.origin_id), ...(res.skipped || []).map((r: { origin_id: string }) => r.origin_id)];
       const receiptsValid = !v1 || (res.candidate_contract_version === 1 && Array.isArray(res.candidate_receipts) && res.candidate_receipts.length === res.count && res.data?.every((r: ExerciseRecord) => res.candidate_receipts.some((receipt: { exercise_id: string; origin_id: string }) => receipt.exercise_id === r.id && receipt.origin_id === r.origin_id)));
@@ -443,9 +445,10 @@ const ExercisesPage: React.FC = () => {
       }
       setReceipt({ count: res.count, skipped: res.skipped?.length || 0, batchId: res.batch_id });
       setLastImportBatch({ id: res.batch_id, source_label: candidateSourceLabel || activeName, exercise_ids: res.data.map((r: ExerciseRecord) => r.id), skipped: res.skipped || [], candidate_receipts: res.candidate_receipts || [], skipped_candidate_receipts: res.skipped_candidate_receipts || [], created_at: '', status: 'active' });
-      removeCommittedCandidates(submittedIds); setMessage(''); await load();
+      setLastImportedCandidateIds(submittedIds);
+      markImportedCandidates(submittedIds); setMessage(''); await load();
     } catch (error) {
-      if (error instanceof ApiError && [404, 409, 422].includes(error.status)) { fail(`入库被拒绝，候选仍保留：${error.message}`); return; }
+      if (error instanceof ApiError && [404, 409, 422].includes(error.status)) { fail(`导入未完成：${error.message}。候选和选择已保留。`); return; }
       setCommitUnknown(true); fail('连接中断，入库结果未知。候选仍保留；先核对题库与批次，不能自动重发。');
     } finally { importLock.current = false; setImporting(false); }
   };
@@ -475,7 +478,10 @@ const ExercisesPage: React.FC = () => {
     try {
       const res = await post(`/exercises/import-batches/rollback${bookQuery}`, { batch_id: lastImportBatch.id });
       if (!res?.success || res.data?.id !== lastImportBatch.id || res.data?.status !== 'rolled_back') { setMessage(res?.message || '撤回尚未确认，请核对本次导入'); return; }
-      setLastImportBatch(res.data); setMessage('本批次导入已撤回'); await load();
+      setLastImportBatch(res.data);
+      restoreImportedCandidates(lastImportedCandidateIds);
+      setCandidateError('');
+      setMessage('本批次导入已撤回'); await load();
     } catch { setMessage('撤回结果尚未确认，请核对本次导入，勿重复操作。'); }
     finally { importLock.current = false; setImporting(false); }
   };
@@ -516,21 +522,13 @@ const ExercisesPage: React.FC = () => {
         </div>
       </div>
       <div className="exercise-workspace-body">
-        {workspaceMode === 'import' && (receipt || commitUnknown) && <section className="exercise-receipt" role="status">
-          <p className="exercise-eyebrow">{commitUnknown ? '等待核对' : lastImportBatch?.status === 'rolled_back' ? '已撤回' : '导入完成'}</p>
-          <h1>{lastImportBatch?.status === 'rolled_back' ? '本批次导入已撤回' : commitUnknown ? '入库结果待核对' : receipt?.count ? `已加入 ${receipt.count} 道题目` : '没有新增题目'}</h1>
-          <p>{commitUnknown ? message : lastImportBatch?.status === 'rolled_back' ? '可以继续导入其他题目。' : `题目已保存到${textbookBook?.displayName || textbookBook?.name || '独立题库'}。${receipt?.skipped ? `已跳过 ${receipt.skipped} 道重复题。` : ''}`}</p>
-          {message && !commitUnknown && <p role="status">{message}</p>}
-          {commitUnknown && inspectedBatches.map(batch => <p key={batch.id}>{batch.source_label || '最近导入'} · {batch.exercise_ids.length} 题</p>)}
-          <div className="exercise-receipt-actions">
-            {commitUnknown ? <button className="app-primary-button" onClick={() => void inspectImportBatches()}>核对导入批次</button> : <button className="app-primary-button" onClick={() => setWorkspaceMode('practice')}>准备练习</button>}
-            <button className="app-secondary-button" onClick={() => setWorkspaceMode('bank')}>查看题库</button>
-            {!commitUnknown && lastImportBatch?.status === 'active' && <button className="app-secondary-button" disabled={importing} onClick={rollbackLastImport}>撤回本批次导入（{lastImportBatch.exercise_ids.length} 题）</button>}
-            {!commitUnknown && <button className="app-ghost-button" onClick={() => setReceipt(null)}>继续导入</button>}
-          </div>
+        {workspaceMode === 'import' && receipt && !commitUnknown && <section className="exercise-import-receipt" role="status">
+          <div><strong>{lastImportBatch?.status === 'rolled_back' ? '本次导入已撤回' : `已导入 ${receipt.count} 道题目`}</strong><p>{lastImportBatch?.status === 'rolled_back' ? '候选和选择已恢复，可直接修改或重新导入。' : '候选及编辑仍保留，已入库题目已取消勾选。'}</p></div>
+          <div><button className="app-secondary-button" onClick={() => setWorkspaceMode('bank')}>查看题库</button>{lastImportBatch?.status === 'active' && <button className="app-secondary-button" disabled={importing} onClick={rollbackLastImport}>撤回本次导入（{lastImportBatch.exercise_ids.length} 题）</button>}<button className="app-ghost-button" onClick={() => { resetImportPreview(); setReceipt(null); }}>导入其他文件</button></div>
         </section>}
+        {workspaceMode === 'import' && commitUnknown && <section className="exercise-receipt" role="status"><h1>入库结果待核对</h1><p>{message}</p>{inspectedBatches.map(batch => <p key={batch.id}>{batch.source_label || '最近导入'} · {batch.exercise_ids.length} 题</p>)}<div className="exercise-receipt-actions"><button className="app-primary-button" onClick={() => void inspectImportBatches()}>核对导入批次</button><button className="app-secondary-button" onClick={() => setWorkspaceMode('bank')}>查看题库</button></div></section>}
 
-        <section hidden={workspaceMode !== 'import' || Boolean(receipt) || commitUnknown} className="exercise-import-panel">
+        <section hidden={workspaceMode !== 'import' || commitUnknown} className="exercise-import-panel">
           <div hidden={(Boolean(candidateState.sourceRegistry)||candidates.length>0) && !reviewPreparationOpen} className="exercise-import-setup">
 
             <h1>导入题目<HelpHint label="导入题目">选中题目后点击“导入选中”保存，待核对提示可随题保留。支持 Word、PDF 和 MinerU 解析包。</HelpHint>

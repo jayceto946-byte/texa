@@ -69,6 +69,11 @@ def split_roles(block, *, first=False, learned=(), choice_prefix=''):
     return spans, any(m['learned'] for m in marks)
 
 
+def clean_focus(text):
+    """Keep the printed focus apart from page/source/difficulty footer fields."""
+    return re.split(r'原稿第\s*\d+\s*页|(?:题目|试题)?来源[：:]|(?:19|20)\d{2}\s*年?\s*(?:数[一二三123]|数学[一二三123])|难度\s*[:：\d]|建议\s*\d', text, maxsplit=1)[0].strip(' \n·•|；;')
+
+
 def header_metadata(text):
     match = CATALOG.match(text)
     # MinerU can serialize a printed catalogue bar as an equation. Decode the
@@ -82,7 +87,7 @@ def header_metadata(text):
     else:
         return None
     exam = EXAM.search(tail)
-    return dict(catalog_number='#' + number, authored_focus=tail[:exam.start()].strip() if exam else tail,
+    return dict(catalog_number='#' + number, authored_focus=clean_focus(tail[:exam.start()] if exam else tail),
                 exam_source=exam.group().strip() if exam else '')
 
 
@@ -234,6 +239,9 @@ def exercise_units(book, *, unrestricted=False, allowed_context_ids=None):
     result = []
     classifications = classification_paths(book, {bid for row in rows for bid in row['header_ids']} |
         {b.block_id for b in book.blocks if b.attributes.get('structure_unit_start') or b.attributes.get('structure_unit_id')})
+    if unrestricted:
+        from memory.exercise_chapters import chapter_paths
+        classifications = chapter_paths(book)
     by_id = {b.block_id: b for b in book.blocks}
     for row in sorted(rows, key=lambda r: order[r['unit_id']]):
         blocks = row.pop('blocks')
@@ -241,7 +249,7 @@ def exercise_units(book, *, unrestricted=False, allowed_context_ids=None):
         path = classifications.get(row['unit_id'], [])
         # Keep the canonical scope for page/chapter selection; the recovered
         # classification is a separate source-backed interpretation.
-        row['classification_path'] = [title for title, _ in path] or [p for p in row['section_path'] if not CATALOG.match(p)]
+        row['classification_path'] = [title for title, _ in path if title] or ([] if unrestricted else [p for p in row['section_path'] if not CATALOG.match(p)])
         if row['header_ids']:
             for _, bid in path:
                 if allowed_context_ids is not None and bid not in allowed_context_ids:
@@ -254,7 +262,7 @@ def exercise_units(book, *, unrestricted=False, allowed_context_ids=None):
                     blocks.append(by_id[bid])
         result.append({**row, 'text': '\n\n'.join(b.text for b in blocks if b.text.strip()),
                        'pairing_reviewed': bool(by_id[row['unit_id']].attributes.get('structure_pairing_reviewed')),
-                       'chapter': row['section_path'][0], 'page_start': blocks[0].page_start,
+                       'chapter': (row['classification_path'][0] if row['classification_path'] else '未分章') if unrestricted else row['section_path'][0], 'page_start': blocks[0].page_start,
                        'page_end': max((b.page_end or b.page_start or 0 for b in blocks), default=0),
                        'source_block_ids': [b.block_id for b in blocks]})
     return result

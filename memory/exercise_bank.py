@@ -313,7 +313,7 @@ class ExerciseBankStore:
         allow_duplicates: bool = False,
         candidate_receipts: list[dict] | None = None,
     ) -> dict:
-        existing = {
+        existing = {} if allow_duplicates else {
             question_fingerprint(record.question_text): record.id
             for record in self.list_all(limit=100000)
             if question_fingerprint(record.question_text)
@@ -322,7 +322,7 @@ class ExerciseBankStore:
         skipped: list[dict] = []
         seen = dict(existing)
         for record in records:
-            fingerprint = question_fingerprint(record.question_text)
+            fingerprint = question_fingerprint(record.question_text) if not allow_duplicates else ''
             duplicate_of = seen.get(fingerprint) if fingerprint else None
             if duplicate_of and not allow_duplicates:
                 skipped.append({"origin_id": record.origin_id, "duplicate_of": duplicate_of})
@@ -379,6 +379,7 @@ class ExerciseBankStore:
 
     def rollback_import_batch(self, batch_id: str) -> Optional[dict]:
         with self._connect() as conn:
+            conn.execute("BEGIN IMMEDIATE")
             row = conn.execute("SELECT data, status FROM exercise_import_batches WHERE id = ?", (batch_id,)).fetchone()
             if not row:
                 return None
@@ -387,8 +388,7 @@ class ExerciseBankStore:
                 return batch
             exercise_ids = [str(item) for item in batch.get("exercise_ids", []) if str(item)]
             if exercise_ids:
-                placeholders = ",".join("?" for _ in exercise_ids)
-                conn.execute(f"DELETE FROM exercises WHERE id IN ({placeholders})", exercise_ids)
+                self._delete_records(conn, exercise_ids)
             batch["status"] = "rolled_back"
             batch["rolled_back_at"] = datetime.now().isoformat()
             conn.execute(
@@ -488,26 +488,29 @@ class ExerciseBankStore:
         return self.delete_many([rid])
 
     def delete_many(self, exercise_ids: list[str]) -> int:
-        removed = set(exercise_ids)
         with self._connect() as conn:
             conn.execute("BEGIN IMMEDIATE")
-            deleted = conn.executemany("DELETE FROM exercises WHERE id = ?", ((rid,) for rid in removed)).rowcount
-            sessions = conn.execute("SELECT data FROM exercise_practice_sessions WHERE status IN ('active', 'paused')").fetchall()
-            for (data,) in sessions:
-                session = PracticeSession.from_dict(json.loads(data))
-                # Keep answered entries and their history; remove deleted questions
-                # from the pending queue and advance to the next available one.
-                pending_removed = removed.intersection(session.exercise_ids) - session.results.keys()
-                if not pending_removed:
-                    continue
-                session.current_index = sum(rid not in pending_removed for rid in session.exercise_ids[:session.current_index])
-                session.exercise_ids = [rid for rid in session.exercise_ids if rid not in pending_removed]
-                session.updated_at = datetime.now().isoformat()
-                if session.current_index >= len(session.exercise_ids):
-                    session.status = 'completed'
-                    session.completed_at = session.updated_at
-                conn.execute("UPDATE exercise_practice_sessions SET data = ?, updated_at = ?, status = ? WHERE id = ?",
-                             (json.dumps(session.to_dict(), ensure_ascii=False), session.updated_at, session.status, session.id))
+            return self._delete_records(conn, exercise_ids)
+
+    def _delete_records(self, conn, exercise_ids):
+        removed = set(exercise_ids)
+        deleted = conn.executemany("DELETE FROM exercises WHERE id = ?", ((rid,) for rid in removed)).rowcount
+        sessions = conn.execute("SELECT data FROM exercise_practice_sessions WHERE status IN ('active', 'paused')").fetchall()
+        for (data,) in sessions:
+            session = PracticeSession.from_dict(json.loads(data))
+            # Keep answered entries and their history; remove deleted questions
+            # from the pending queue and advance to the next available one.
+            pending_removed = removed.intersection(session.exercise_ids) - session.results.keys()
+            if not pending_removed:
+                continue
+            session.current_index = sum(rid not in pending_removed for rid in session.exercise_ids[:session.current_index])
+            session.exercise_ids = [rid for rid in session.exercise_ids if rid not in pending_removed]
+            session.updated_at = datetime.now().isoformat()
+            if session.current_index >= len(session.exercise_ids):
+                session.status = 'completed'
+                session.completed_at = session.updated_at
+            conn.execute("UPDATE exercise_practice_sessions SET data = ?, updated_at = ?, status = ? WHERE id = ?",
+                         (json.dumps(session.to_dict(), ensure_ascii=False), session.updated_at, session.status, session.id))
         return deleted
 
     def list_all(
@@ -561,14 +564,15 @@ class ExerciseBankStore:
         return records[:limit]
 
     def source_facets(self, subject: Optional[str] = None, chapter: Optional[str] = None) -> dict:
-        sql = "SELECT json_extract(data, '$.subject'), json_extract(data, '$.source_structure.exam_source'), json_extract(data, '$.source_structure.authored_focus') FROM exercises"
+        sql = "SELECT json_extract(data, '$.subject'), json_extract(data, '$.source_structure.exam_source'), json_extract(data, '$.source_structure.authored_focus'), chapter FROM exercises"
         params=[]
-        if chapter:
-            sql += " WHERE chapter = ?";params.append(chapter)
-        counts=dict(exam_source={},authored_focus={})
+        counts=dict(exam_source={},authored_focus={},chapters={})
         with self._connect() as conn:
-            for record_subject,source,focus in conn.execute(sql,params):
+            for record_subject,source,focus,record_chapter in conn.execute(sql,params):
                 if subject and not subject_matches(record_subject or '',subject):continue
+                if record_chapter:
+                    counts['chapters'][record_chapter]=counts['chapters'].get(record_chapter,0)+1
+                if chapter and record_chapter != chapter:continue
                 for key,value in (('exam_source',source),('authored_focus',focus)):
                     if isinstance(value,str) and value.strip():
                         value=value.strip();counts[key][value]=counts[key].get(value,0)+1

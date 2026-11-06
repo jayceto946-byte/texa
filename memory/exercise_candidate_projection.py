@@ -337,6 +337,9 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
         if metadata is None:
             focus = next((m[1] for b in headers if (m := FOCUS.match(b['text']))), '')
             metadata = dict(catalog_number='', authored_focus=focus, exam_source='')
+        if not metadata['authored_focus']:
+            from memory.exercise_structure import TOPIC
+            metadata['authored_focus'] = next((b['text'].strip() for b in reversed(headers) if TOPIC.match(b['text'])), '')
         original = ORIGINAL.match(body['question'])
         path = unit.get('classification_path', unit.get('section_path', []))
         attributes = question_metadata('\n'.join(b['text'] for b in headers) + '\n' + body['question'], path)
@@ -357,6 +360,8 @@ def project_units(units, source_blocks, canonical_hash, scope, *, learned=(), pr
         if 'exam_source' not in reviewed_fields and metadata.get('exam_source') and not attributes['exam_source']:
             attributes['exam_source'] = metadata['exam_source']
         metadata['exam_source'] = attributes.pop('exam_source')
+        from memory.exercise_structure import clean_focus
+        metadata['authored_focus'] = clean_focus(metadata['authored_focus'])
         structure = dict(**(metadata or dict(catalog_number='', authored_focus='', exam_source='')),
                          **attributes,
                          original_number=reviewed_number if reviewed_number is not None else blocks[0]['attributes'].get('structure_question_number') or ((original.group(1) or original.group(2)).replace('．','.') if original else ''),

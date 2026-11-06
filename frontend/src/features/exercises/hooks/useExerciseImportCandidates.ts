@@ -22,13 +22,14 @@ export function useExerciseImportCandidates({ onMessage }: UseExerciseImportCand
   const [confirmingId, setConfirmingId] = useState('');
   const [candidates, setCandidates] = useState<ExerciseCandidate[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [importedIds, setImportedIds] = useState<Set<string>>(new Set());
   const [candidateFilter, setCandidateFilter] = useState<CandidateFilter>('all');
   const [editingCandidateId, setEditingCandidateId] = useState('');
 
   const importSummary = useMemo(() => summarizeCandidates(candidates), [candidates]);
   const filteredCandidates = useMemo(() => filterCandidates(candidates, candidateFilter), [candidateFilter, candidates]);
 
-  const submittableCandidates = useMemo(() => candidates.filter(c => selectedIds.has(c.id) && canImportCandidate(c) && (!c.projection || sourceRegistry?.canonical_hash === c.projection.canonical_hash)), [candidates, selectedIds, sourceRegistry]);
+  const submittableCandidates = useMemo(() => candidates.filter(c => selectedIds.has(c.id) && !importedIds.has(c.id) && canImportCandidate(c) && (!c.projection || sourceRegistry?.canonical_hash === c.projection.canonical_hash)), [candidates, selectedIds, importedIds, sourceRegistry]);
 
   const resetImportCandidates = useCallback(() => {
     setCandidates([]);
@@ -36,6 +37,7 @@ export function useExerciseImportCandidates({ onMessage }: UseExerciseImportCand
     setReviewDecisions({});
     setEditingCandidateId('');
     setSelectedIds(new Set());
+    setImportedIds(new Set());
   }, []);
 
   const replaceCandidates = useCallback((next: ExerciseCandidate[], registry: CandidateSourceRegistry | null = null) => {
@@ -44,6 +46,7 @@ export function useExerciseImportCandidates({ onMessage }: UseExerciseImportCand
     setEditingCandidateId('');
     setCandidates(next);
     setSelectedIds(new Set(next.map((item) => item.id)));
+    setImportedIds(new Set());
   }, []);
 
   const removeSelectedCandidates = useCallback(() => {
@@ -51,14 +54,21 @@ export function useExerciseImportCandidates({ onMessage }: UseExerciseImportCand
     setSelectedIds(new Set());
   }, [selectedIds]);
 
-  const removeCommittedCandidates = useCallback((ids: ReadonlySet<string>) => {
-    setCandidates(current => current.filter(c => !ids.has(c.id)));
+  const markImportedCandidates = useCallback((ids: ReadonlySet<string>) => {
+    setImportedIds(current => new Set([...current, ...ids]));
     setSelectedIds(current => new Set([...current].filter(id => !ids.has(id))));
+    setEditingCandidateId('');
   }, []);
 
-  const selectAllCandidates = useCallback(() => {
-    setSelectedIds(new Set(candidates.map((item) => item.id)));
+  const restoreImportedCandidates = useCallback((ids: ReadonlySet<string>) => {
+    setImportedIds(current => new Set([...current].filter(id => !ids.has(id))));
+    const present = new Set(candidates.map(candidate => candidate.id));
+    setSelectedIds(current => new Set([...current, ...ids].filter(id => present.has(id))));
   }, [candidates]);
+
+  const selectAllCandidates = useCallback(() => {
+    setSelectedIds(new Set(candidates.filter(item => !importedIds.has(item.id)).map((item) => item.id)));
+  }, [candidates, importedIds]);
 
   const clearCandidateSelection = useCallback(() => {
     setSelectedIds(new Set());
@@ -155,7 +165,9 @@ export function useExerciseImportCandidates({ onMessage }: UseExerciseImportCand
     chooseResolution,
     confirmCandidate,
     confirmingId,
-    removeCommittedCandidates,
+    markImportedCandidates,
+    restoreImportedCandidates,
+    importedIds,
     selectedIds,
     candidateFilter,
     setCandidateFilter,

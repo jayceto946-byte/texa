@@ -209,7 +209,7 @@ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell[data-
 .exercise-figure-item>div:last-child{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .exercise-figure-item .exercise-source-image img{max-height:220px;object-fit:contain;object-position:left}
 .exercise-review-issues ul{padding-left:20px;margin-top:8px;line-height:1.8}
-.exercise-commit small{display:block;font-size:11px;color:var(--color-text-secondary)}
+.exercise-commit small{display:block;font-size:11px;color:var(--color-text-secondary);margin-top:3px}
 .exercise-practice-panel.is-reading .question-reading-heading{padding:18px 24px}
 .exercise-practice-panel.is-reading .question-reading-heading h1{font-size:22px;margin-top:4px}
 .exercise-edit-dialog{width:min(800px,calc(100vw - 40px));max-height:calc(100dvh - 48px);overflow:auto;padding:24px;background:var(--color-bg-primary);color:var(--color-text-primary)}
@@ -298,3 +298,8 @@ body:has(.desktop-titlebar-marker.is-macos:not(.is-fullscreen)) .app-shell[data-
 .exercise-delete-dialog footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
 .exercise-delete-confirm,.exercise-delete-error{color:var(--color-danger,#b74444)}
 @container(max-width:520px){.exercise-bank-row{gap:8px}.exercise-bank-management{align-items:flex-start}.exercise-bank-management>div{margin-left:auto}.exercise-bank-chevron{display:none}}
+
+.exercise-import-receipt{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;flex:none;gap:12px;padding:12px 24px;border-bottom:1px solid var(--color-border);font-size:13px;background:var(--color-bg-primary)}
+.exercise-import-receipt p{font-size:12px;color:var(--color-text-secondary);margin:4px 0 0}
+.exercise-import-receipt>div:last-child{display:flex;flex-wrap:wrap;gap:8px}
+.exercise-imported-label{font-size:11px;color:var(--color-text-secondary);padding-inline:4px;white-space:nowrap}
