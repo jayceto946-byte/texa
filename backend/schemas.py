@@ -258,6 +258,10 @@ class ExerciseStatusRequest(BaseModel):
     status: str
 
 
+class ExerciseDeleteRequest(BaseModel):
+    exercise_ids: list[str] = Field(min_length=1, max_length=2000)
+
+
 class ExerciseEditRequest(BaseModel):
     id: str
     question_text: str = Field(min_length=1)

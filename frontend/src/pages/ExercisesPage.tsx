@@ -8,22 +8,21 @@ import '../features/exercises/exercises.css';
 import { useUnsavedWorkGuard } from '../features/reading/useUnsavedWorkGuard';
 import { HelpHint } from '../features/exercises/components/HelpHint';
 import { ExerciseScopeFilters } from '../features/exercises/components/ExerciseScopeFilters';
-import { exerciseSourceCategory, exerciseSourceLabels, exerciseSubjectMatches } from '../features/exercises/exerciseSource';
+import { exerciseSubjectMatches } from '../features/exercises/exerciseSource';
 import { CandidateReviewWorkspace } from '../features/exercises/components/CandidateReviewWorkspace';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Loader2, Upload } from 'lucide-react';
-import { apiFetch, del, get, post, ApiError } from '../api/client';
+import { apiFetch, get, post, ApiError } from '../api/client';
 import { SimpleMarkdown } from '../components/chat/MarkdownRenderer';
 import { ExerciseReader } from '../features/exercises/components/ExerciseReader';
 import { PracticeAssessment } from '../features/exercises/components/PracticeAssessment';
 import ScopeSelector from '../components/ScopeSelector';
 import { SegmentedControl } from '../components/ui/SelectionControls';
 import { useChatContext } from '../contexts/ChatContext';
-import {
-
-  exerciseStatusText as statusText,
-} from '../features/exercises/components/ExercisePresentation';
+import { ExerciseBankList } from '../features/exercises/components/ExerciseBankList';
+import { ExerciseDeleteDialog } from '../features/exercises/components/ExerciseDeleteDialog';
+import { useExerciseDeletion } from '../features/exercises/hooks/useExerciseDeletion';
 import { useVisibleList } from '../hooks/useVisibleList';
 import { useAuthenticatedBlobUrl } from '../hooks/useAuthenticatedBlobUrl';
 import { useTextbookImportOutline } from '../features/exercises/hooks/useTextbookImportOutline';
@@ -266,6 +265,8 @@ const ExercisesPage: React.FC = () => {
   }, [subject, importScopeSnapshot]);
 
   useEffect(() => {
+    setRecords([]);
+    setExpandedId('');
     load();
   }, [load]);
 
@@ -489,25 +490,16 @@ const ExercisesPage: React.FC = () => {
     await load();
   };
 
-  const deleteExercise = async (id: string) => {
-    if (!window.confirm('确定删除这道习题吗？')) return;
-    try {
-      const res = await del(`/exercises/${encodeURIComponent(id)}${bookQuery}`, 20000);
-      if (!res?.success) {
-        setMessage(res?.message || '删除习题失败');
-        return;
-      }
-      setRecords((prev) => prev.filter((item) => item.id !== id));
-      if (expandedId === id) setExpandedId('');
-      clearDeletedPractice(id);
-      setMessage(res.message || '已删除习题');
-      await load();
-    } catch (e) {
-      setMessage(e instanceof Error ? e.message : String(e));
-    }
-  };
+  const deletion = useExerciseDeletion({ bookQuery, onDeleted: async (ids, notice) => {
+    setRecords(previous => previous.filter(record => !ids.has(record.id)));
+    if (ids.has(expandedId)) setExpandedId('');
+    ids.forEach(clearDeletedPractice);
+    setMessage(notice);
+    await load();
+  } });
   return (
     <div className="management-workspace flex h-full flex-col">
+      <ExerciseDeleteDialog records={deletion.pending} deleting={deletion.deleting} error={deletion.error} onCancel={deletion.cancel} onConfirm={() => void deletion.confirm()} />
       {manualOpen && <ManualExerciseDialog scope={activeName} subject={targetSubject} onClose={() => setManualOpen(false)} onSaved={() => { void load(); }} />}
       <div className="app-page-header border-b border-border bg-bg-primary">
         <h2 className="app-page-title shrink-0 whitespace-nowrap">练习</h2>
@@ -617,7 +609,7 @@ const ExercisesPage: React.FC = () => {
         <div hidden={workspaceMode !== 'bank' || !expandedId} className="exercise-bank-reader">{records.find(r => r.id === expandedId) && <ExerciseReader key={expandedId} record={records.find(r => r.id === expandedId)!} bookQuery={bookQuery} title="习题详情" actions={<>
           <button className="app-primary-button" onClick={() => startSinglePractice(records.find(r => r.id === expandedId)!)}>练习这道题</button>
           <button className="app-ghost-button" onClick={() => setExpandedId('')}>返回题库</button>
-        </>} onSaved={handleAnswerSaved} onMessage={setMessage} onStatus={status => void updateStatus(expandedId, status)} onDelete={() => void deleteExercise(expandedId)} />}</div>
+        </>} onSaved={handleAnswerSaved} onMessage={setMessage} onStatus={status => void updateStatus(expandedId, status)} onDelete={() => deletion.request(records.filter(record => record.id === expandedId))} />}</div>
         <main hidden={workspaceMode === 'import' || (workspaceMode === 'bank' && Boolean(expandedId))} className="exercise-main">
           <div className="exercise-main-inner">
             {(workspaceMode === 'bank' || (!singlePracticeActive && !['active', 'paused'].includes(practiceSession?.status || ''))) && <ExerciseScopeFilters subject={targetSubject} bookName={activeName} books={books} chapter={filterChapter} chapters={scopeChapters} examSource={filterExamSource} authoredFocus={filterAuthoredFocus} sourceFacets={sourceFacets} onExamSource={setFilterExamSource} onAuthoredFocus={setFilterAuthoredFocus} practiceState={practiceState} onSubject={updateTargetSubject} onBook={value => void updateTargetName(value)} onChapter={setFilterChapter} onPracticeState={setPracticeState} />}
@@ -689,35 +681,7 @@ const ExercisesPage: React.FC = () => {
               </div>
 
               <div className="exercise-bank-list">
-                {(!loading ? recordList.visibleItems : []).map((record) => {
-                  const expanded = expandedId === record.id;
-                  return (
-                    <article key={record.id} className="exercise-bank-row">
-                      <button onClick={() => setExpandedId(expanded ? '' : record.id)} className="exercise-bank-open">
-                        <ChevronRight className="exercise-bank-chevron" size={16} />
-                        <div className="exercise-bank-content">
-                          <SimpleMarkdown content={titleOf(record)} className="exercise-bank-question" />
-                          <div className="exercise-bank-source">
-                            <span>{exerciseSourceCategory(record, textbookSourceName) === 'textbook_example' ? '来自教材' : '题目来源'}</span>
-                            <strong>{exerciseSourceCategory(record, textbookSourceName) === 'textbook_example' ? textbookBook?.displayName || textbookSourceName : record.source || exerciseSourceLabels[exerciseSourceCategory(record, textbookSourceName)]}</strong>
-                            {record.chapter && <span>{record.chapter}</span>}
-                          </div>
-                          {(record.source_structure?.exam_source || record.source_structure?.authored_focus) && <div className="exercise-metadata-tags">
-                            {record.source_structure?.exam_source && <span title={record.source_structure.exam_source}>来源 · {record.source_structure.exam_source}</span>}
-                            {record.source_structure?.authored_focus && <span title={record.source_structure.authored_focus}>考点 · {record.source_structure.authored_focus}</span>}
-                          </div>}
-                          <div className="exercise-bank-facts">
-                            <span className="exercise-source-kind">{exerciseSourceLabels[exerciseSourceCategory(record, textbookSourceName)] || '习题'}</span>
-                            {record.question_type && record.question_type !== '未确定' && <span>{record.question_type}</span>}
-                            <span>练习 {record.practice_count || 0} 次</span>
-                          </div>
-                        </div>
-                        <span className="exercise-bank-status">{statusText[record.status] || record.status}</span>
-                      </button>
-
-                    </article>
-                  );
-                })}
+                <ExerciseBankList key={`${activeName}|${targetSubject}|${filterChapter}|${filterExamSource}|${filterAuthoredFocus}|${practiceState}|${searchKw}`} records={records} visibleRecords={loading ? [] : recordList.visibleItems} textbookName={textbookSourceName} textbookLabel={textbookBook?.displayName || ''} disabled={loading || deletion.deleting} onOpen={setExpandedId} onDelete={deletion.request} />
                 {recordList.hasMore && (
                   <div className="flex justify-center pt-1">
                     <button onClick={recordList.showMore} className="workspace-radius border border-border bg-bg-primary px-4 py-2 workspace-interface-text text-text-secondary hover:border-accent hover:text-text-primary">

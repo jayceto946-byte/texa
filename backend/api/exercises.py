@@ -29,6 +29,7 @@ from backend.schemas import (
     ExerciseToMistakeRequest,
     ExerciseRecordOut,
     ExerciseStatusRequest,
+    ExerciseDeleteRequest,
     ExerciseEditRequest,
     TextbookExerciseAnalyzeRequest,
 )
@@ -1028,6 +1029,12 @@ def exercise_asset(exercise_id: str, asset_id: str, book_name: str = 'default'):
     except FileNotFoundError as exc:
         raise HTTPException(404, str(exc)) from None
     return FileResponse(path, media_type=media_type)
+
+
+@router.post('/delete')
+def delete_exercises(req: ExerciseDeleteRequest, book_name: str = 'default'):
+    count = _bank(book_name).delete_many(req.exercise_ids)
+    return dict(success=True, data=dict(deleted=count), message=f'已删除 {count} 道题目')
 
 
 @router.delete("/{exercise_id}")

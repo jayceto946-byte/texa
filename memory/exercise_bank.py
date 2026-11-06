@@ -485,9 +485,30 @@ class ExerciseBankStore:
             conn.commit()
 
     def delete(self, rid: str):
+        return self.delete_many([rid])
+
+    def delete_many(self, exercise_ids: list[str]) -> int:
+        removed = set(exercise_ids)
         with self._connect() as conn:
-            conn.execute("DELETE FROM exercises WHERE id = ?", (rid,))
-            conn.commit()
+            conn.execute("BEGIN IMMEDIATE")
+            deleted = conn.executemany("DELETE FROM exercises WHERE id = ?", ((rid,) for rid in removed)).rowcount
+            sessions = conn.execute("SELECT data FROM exercise_practice_sessions WHERE status IN ('active', 'paused')").fetchall()
+            for (data,) in sessions:
+                session = PracticeSession.from_dict(json.loads(data))
+                # Keep answered entries and their history; remove deleted questions
+                # from the pending queue and advance to the next available one.
+                pending_removed = removed.intersection(session.exercise_ids) - session.results.keys()
+                if not pending_removed:
+                    continue
+                session.current_index = sum(rid not in pending_removed for rid in session.exercise_ids[:session.current_index])
+                session.exercise_ids = [rid for rid in session.exercise_ids if rid not in pending_removed]
+                session.updated_at = datetime.now().isoformat()
+                if session.current_index >= len(session.exercise_ids):
+                    session.status = 'completed'
+                    session.completed_at = session.updated_at
+                conn.execute("UPDATE exercise_practice_sessions SET data = ?, updated_at = ?, status = ? WHERE id = ?",
+                             (json.dumps(session.to_dict(), ensure_ascii=False), session.updated_at, session.status, session.id))
+        return deleted
 
     def list_all(
         self,
@@ -926,6 +947,9 @@ class ExerciseBank:
 
     def delete(self, rid: str):
         self.store.delete(rid)
+
+    def delete_many(self, exercise_ids: list[str]) -> int:
+        return self.store.delete_many(exercise_ids)
 
     def list_all(self, **filters) -> list[ExerciseRecord]:
         return self.store.list_all(**filters)
