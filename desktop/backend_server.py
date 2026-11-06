@@ -7,6 +7,7 @@ from contextlib import closing
 import os
 import shutil
 import sqlite3
+import subprocess
 import sys
 if __name__ == "__main__":
     # Divert PyInstaller multiprocessing workers before server/data initialization.
@@ -103,6 +104,32 @@ def _seed_sample_data(data_dir: Path) -> None:
     _write_asset_manifest(data_dir)
 
 
+def _check_frozen_runtime(directory: Path) -> None:
+    import chromadb
+    from datetime import datetime, timedelta
+    from zoneinfo import ZoneInfo
+    from config import get_embeddings
+
+    assert datetime(2026, 1, 1, tzinfo=ZoneInfo("Asia/Shanghai")).utcoffset() == timedelta(hours=8)
+    assert datetime(2026, 1, 1, tzinfo=ZoneInfo("UTC")).utcoffset() == timedelta(0)
+    embeddings = get_embeddings()
+    with closing(sqlite3.connect(directory / "smoke.sqlite3")) as connection:
+        connection.execute("CREATE TABLE smoke (value TEXT)")
+        connection.execute("INSERT INTO smoke VALUES (?)", ("ready",))
+        connection.commit()
+        assert connection.execute("SELECT value FROM smoke").fetchone() == ("ready",)
+    with chromadb.PersistentClient(path=str(directory / "vector_db")) as client:
+        collection = client.get_or_create_collection("frozen_smoke")
+        collection.add(
+            ids=["one"],
+            documents=["线性代数中的特征值"],
+            embeddings=[embeddings.embed_query("线性代数中的特征值")],
+        )
+        matches = collection.query(query_embeddings=[embeddings.embed_query("特征值")], n_results=1)
+        assert matches["ids"] == [["one"]]
+    assert (_bundle_root() / "frontend" / "dist" / "index.html").is_file()
+
+
 def main() -> None:
     root = _bundle_root()
     os.chdir(root)
@@ -118,31 +145,16 @@ def main() -> None:
     _seed_sample_data(data_dir)
 
     if os.getenv("TEXA_FROZEN_SMOKE", "0") == "1":
-        import chromadb
-        from datetime import datetime, timedelta
-        from zoneinfo import ZoneInfo
-        from config import get_embeddings
-
-        assert datetime(2026, 1, 1, tzinfo=ZoneInfo("Asia/Shanghai")).utcoffset() == timedelta(hours=8)
-        assert datetime(2026, 1, 1, tzinfo=ZoneInfo("UTC")).utcoffset() == timedelta(0)
-        embeddings = get_embeddings()
+        if len(sys.argv) == 3 and sys.argv[1] == "--frozen-smoke-worker":
+            _check_frozen_runtime(Path(sys.argv[2]))
+            return
+        # Chroma's native runtime can retain SQLite handles after close() on
+        # Windows. The parent owns cleanup after the worker process has exited.
         with tempfile.TemporaryDirectory(prefix="texa-frozen-smoke-") as temporary:
-            root = Path(temporary)
-            with closing(sqlite3.connect(root / "smoke.sqlite3")) as connection:
-                connection.execute("CREATE TABLE smoke (value TEXT)")
-                connection.execute("INSERT INTO smoke VALUES (?)", ("ready",))
-                connection.commit()
-                assert connection.execute("SELECT value FROM smoke").fetchone() == ("ready",)
-            with chromadb.PersistentClient(path=str(root / "vector_db")) as client:
-                collection = client.get_or_create_collection("frozen_smoke")
-                collection.add(
-                    ids=["one"],
-                    documents=["线性代数中的特征值"],
-                    embeddings=[embeddings.embed_query("线性代数中的特征值")],
-                )
-                matches = collection.query(query_embeddings=[embeddings.embed_query("特征值")], n_results=1)
-                assert matches["ids"] == [["one"]]
-        assert (_bundle_root() / "frontend" / "dist" / "index.html").is_file()
+            command = [sys.executable]
+            if not getattr(sys, "frozen", False):
+                command.append(str(Path(__file__).resolve()))
+            subprocess.run(command + ["--frozen-smoke-worker", temporary], check=True)
         print("TEXA_FROZEN_SMOKE_PASS", flush=True)
         return
 
